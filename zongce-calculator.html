@@ -695,7 +695,7 @@ function fillImportTemplate(){
 }
 
 function parseTableText(text){
-  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.replace(/[,\t]/g,'').trim().length>0);
   const rows = lines.map(l => l.includes('\t') ? l.split('\t') : l.split(','));
   const pairs = [];
   const allTwoCol = rows.length>0 && rows.every(r => r.length === 2);
@@ -750,6 +750,13 @@ function doImport(text){
   if(hasDetailField) setSuzhiMode('detail');
   else if(filled.suzhiDirect) setSuzhiMode('direct');
 
+  const isDetailMode = document.getElementById('modeDetail').classList.contains('active');
+  const isFieldRelevant = f => {
+    if(f.key === 'suzhiDirect') return !isDetailMode;
+    if(detailKeys.includes(f.key)) return isDetailMode;
+    return true;
+  };
+
   importFieldDefs.forEach(f=>{
     const entry = filled[f.key];
     if(f.kind === 'input'){
@@ -759,6 +766,8 @@ function doImport(text){
       let hintEl = document.getElementById(hintId);
       if(entry){
         el.value = entry.value;
+        if(hintEl) hintEl.remove();
+      } else if(!isFieldRelevant(f)){
         if(hintEl) hintEl.remove();
       } else if(!hintEl){
         hintEl = document.createElement('span');
@@ -778,6 +787,8 @@ function doImport(text){
           document.getElementById(f.base + '-score').value = entry.value;
         }
         if(hintEl) hintEl.classList.add('hidden');
+      } else if(!isFieldRelevant(f)){
+        if(hintEl) hintEl.classList.add('hidden');
       } else if(hintEl){
         hintEl.textContent = '⚠ 表格未提供，请手动填写得分或粘贴评议名单';
         hintEl.classList.remove('hidden');
@@ -788,7 +799,7 @@ function doImport(text){
   calc();
 
   const okList = importFieldDefs.filter(f=>filled[f.key]).map(f=>f.label);
-  const missList = importFieldDefs.filter(f=>!filled[f.key]).map(f=>f.label);
+  const missList = importFieldDefs.filter(f=>!filled[f.key] && isFieldRelevant(f)).map(f=>f.label);
   document.getElementById('importResult').innerHTML =
     (okList.length ? `已自动填入：${okList.join('、')}<br>` : '未能从表格中识别出任何字段，请检查表格格式。<br>') +
     (missList.length ? `<span class="import-hint-warn">表格未提供，需手动填写：${missList.join('、')}</span>` : '全部字段均已自动填入。');
