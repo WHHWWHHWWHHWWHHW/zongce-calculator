@@ -769,12 +769,15 @@ function doImport(text){
         if(hintEl) hintEl.remove();
       } else if(!isFieldRelevant(f)){
         if(hintEl) hintEl.remove();
-      } else if(!hintEl){
-        hintEl = document.createElement('span');
-        hintEl.id = hintId;
-        hintEl.className = 'field-hint import-hint-warn';
-        hintEl.textContent = '　⚠ 表格未提供，请在此手动填写';
-        el.insertAdjacentElement('afterend', hintEl);
+      } else {
+        el.value = '';
+        if(!hintEl){
+          hintEl = document.createElement('span');
+          hintEl.id = hintId;
+          hintEl.className = 'field-hint import-hint-warn';
+          hintEl.textContent = '　⚠ 表格未提供，请在此手动填写';
+          el.insertAdjacentElement('afterend', hintEl);
+        }
       }
     } else {
       const hintEl = document.getElementById(f.base + '-importHint');
@@ -789,9 +792,13 @@ function doImport(text){
         if(hintEl) hintEl.classList.add('hidden');
       } else if(!isFieldRelevant(f)){
         if(hintEl) hintEl.classList.add('hidden');
-      } else if(hintEl){
-        hintEl.textContent = '⚠ 表格未提供，请手动填写得分或粘贴评议名单';
-        hintEl.classList.remove('hidden');
+      } else {
+        document.getElementById(f.base + '-score').value = '';
+        document.getElementById(f.base + '-list').value = '';
+        if(hintEl){
+          hintEl.textContent = '⚠ 表格未提供，请手动填写得分或粘贴评议名单';
+          hintEl.classList.remove('hidden');
+        }
       }
     }
   });
