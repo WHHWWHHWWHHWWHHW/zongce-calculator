@@ -2,6 +2,33 @@
 
 > 每次会话结束时在顶部追加一条（CLAUDE.md §9.3）。
 
+## 2026-10-13 · M2 前端基础（不依赖组件库）
+
+**完成**（分支 `m2/frontend`，基于 `m1/backend`）
+
+- `frontend/`：Vue 3.5 + Vite 7 + TypeScript 5.9（strict）+ vue-router 4.6 + Pinia 3。
+- API 类型由 `docs/api/openapi.json` 生成（openapi-typescript），请求用 openapi-fetch；`pnpm check:api` 校验一致。
+- 登录态（sessionStorage）、401 自动登出、修改密码后重新登录；路由守卫：未登录 / 强制改密 / 角色。
+- 占位页：登录、改密、首页、审核工作台、管理后台、无权限。
+- 安全自查后修复（`m1/backend`）：Excel 导出防公式注入、时间带 UTC 时区、下载加 nosniff。
+- CI 增加前端任务；ADR 0004；`frontend/README.md`。
+
+**验证**（本地，Node 22.23.2）
+
+- `pnpm check:api`、`format:check`、`lint`、`typecheck`、`build`：通过。
+- `pnpm test`：15 passed；语句 100%、分支 98.61%、函数 87.5%。
+- 本机联调：`vite preview` + `zongce serve`，经前端代理访问 `/api/v1/health` 和登录成功。
+- 浏览器端到端（Playwright）：**未做**，等页面实现后补。
+
+**下一步**
+
+- **负责人选定组件库**（Element Plus 或 Naive UI）后实现页面：学生申报、审核工作台（差异项标红）、管理后台；Playwright 端到端测试；375px 适配。
+
+**阻塞 / 待决定**
+
+- 组件库选择（CLAUDE.md §13 第 7 项）。
+- GitHub 推送权限。
+
 ## 2026-10-13 · M1 后端 MVP（无人值守，负责人授权）
 
 **完成**（分支 `m1/backend`，基于 `m0/rule-engine`）
