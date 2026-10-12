@@ -16,10 +16,10 @@ pnpm dev                        # http://localhost:5173，/api 代理到本机�
 
 ## 常用命令
 
-| 命令 | 作用 |
-|---|---|
-| `pnpm gen:api` | 根据 `docs/api/openapi.json` 重新生成 `src/api/schema.d.ts`（后端接口变化后运行） |
-| `pnpm check:api` | 检查生成的类型是否与接口文档一致（CI 中执行） |
-| `pnpm typecheck` / `pnpm lint` / `pnpm format:check` | 类型检查 / ESLint / Prettier |
-| `pnpm test` | 单元测试（Vitest，覆盖率门槛 80%） |
-| `pnpm build` | 生产构建，输出到 `dist/` |
+| 命令                                                 | 作用                                                                              |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `pnpm gen:api`                                       | 根据 `docs/api/openapi.json` 重新生成 `src/api/schema.d.ts`（后端接口变化后运行） |
+| `pnpm check:api`                                     | 检查生成的类型是否与接口文档一致（CI 中执行）                                     |
+| `pnpm typecheck` / `pnpm lint` / `pnpm format:check` | 类型检查 / ESLint / Prettier                                                      |
+| `pnpm test`                                          | 单元测试（Vitest，覆盖率门槛 80%）                                                |
+| `pnpm build`                                         | 生产构建，输出到 `dist/`                                                          |
