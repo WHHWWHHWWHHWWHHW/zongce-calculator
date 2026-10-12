@@ -12,11 +12,13 @@
 - 占位页：登录、改密、首页、审核工作台、管理后台、无权限。
 - 安全自查后修复（`m1/backend`）：Excel 导出防公式注入、时间带 UTC 时区、下载加 nosniff。
 - CI 增加前端任务；ADR 0004；`frontend/README.md`。
+- `scripts/gen_fake_data.py`：生成合成演示数据（users.xlsx、college.xlsx，学号以 TEST 开头），集成测试覆盖“导入 → 核算 → 排名”。
 
 **验证**（本地，Node 22.23.2）
 
 - `pnpm check:api`、`format:check`、`lint`、`typecheck`、`build`：通过。
 - `pnpm test`：15 passed；语句 100%、分支 98.61%、函数 87.5%。
+- `bash scripts/check.sh`：引擎 + 对拍 129 passed（覆盖率 100%）；后端 52 passed（覆盖率 98.50%）。干净克隆复跑通过。
 - 本机联调：`vite preview` + `zongce serve`，经前端代理访问 `/api/v1/health` 和登录成功。
 - 浏览器端到端（Playwright）：**未做**，等页面实现后补。
 
