@@ -37,7 +37,7 @@ known-first-party = ["zongce_engine", "zongce_backend", "support", "backend_help
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["engine/src", "engine/tests", "backend/src", "backend/tests", "tests"]
+files = ["engine/src", "engine/tests", "backend/src", "backend/tests", "tests", "scripts"]
 mypy_path = ["engine/src", "backend/src", "backend/tests", "tests"]
 explicit_package_bases = true
 
