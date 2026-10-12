@@ -1,0 +1,142 @@
+{
+  "$schema": "./schema.json",
+  "id": "ujn-v1",
+  "version": "1.0.0",
+  "title": "济南大学信息科学与工程学院综合测评规则 v1",
+  "description": "逐位复现 legacy zongce-calculator.html v1.0.1 的计分逻辑（CLAUDE.md §4）。与《济南大学信息科学与工程学院本科生综合测评实施办法（试行）》（济大信息院字〔2020〕23 号）原文的差异见 docs/rules-issues.md，均未纳入本版本。source 中的行号均指 v1.0.1 中的 zongce-calculator.html。",
+  "baseline": {
+    "file": "zongce-calculator.html",
+    "release": "v1.0.1",
+    "commit": "7619d3d"
+  },
+  "final": {
+    "id": "final",
+    "name": "综合测评成绩",
+    "academic_weight": "0.75",
+    "quality_weight": "0.25",
+    "quality_divisor": "20",
+    "decimal_places": 4,
+    "rounding": "js_math_round",
+    "source": "legacy calc() 第 867 行、round4() 第 833 行；《实施办法》正文第六条：综合测评成绩=学生综合素质评价成绩÷20×25%+学业水平评价成绩×75%，根据四舍五入规则精确到小数点后 4 位"
+  },
+  "academic": {
+    "id": "academic",
+    "name": "学业水平评价成绩（GPA）",
+    "source": "legacy calc() 第 838 行：parseFloat(...) || 0，不做范围限制；《实施办法》正文第八条：采用平均学分绩点（GPA）"
+  },
+  "quality": {
+    "id": "quality",
+    "name": "综合素质评价成绩",
+    "min": "0",
+    "max": "100",
+    "source": "legacy calc() 第 864 行：clamp(思想品德 + 综合能力, 0, 100)；《实施办法》正文第七条：满分 100 分",
+    "direct": {
+      "id": "quality.direct",
+      "name": "综合素质评价总分（直接输入）",
+      "min": "0",
+      "max": "100",
+      "source": "legacy calc() 第 845 行：直接输入总分模式，clamp(parseFloat(...) || 0, 0, 100)"
+    }
+  },
+  "moral": {
+    "id": "moral",
+    "name": "思想品德行为习惯",
+    "min": "0",
+    "max": "30",
+    "source": "legacy calc() 第 850 行：clamp(四项之和, 0, 30)；《实施办法》正文第七条之一、附件 1 第三条：满分 30 分",
+    "trim": {
+      "id": "moral.trim",
+      "name": "评议名单去极值平均",
+      "ratio": "0.1",
+      "rounding": "js_math_round",
+      "source": "legacy trimmedMean() 第 589–598 行；附件 1 第四条：汇总时分别去掉 10% 的最高分和最低分（四舍五入），算出平均分"
+    },
+    "items": [
+      {
+        "id": "moral.political",
+        "field": "political",
+        "name": "政治素养",
+        "min": "0",
+        "max": "10",
+        "source": "legacy pindeItems 第 548 行、getPindeScore() 第 600–613 行；附件 1 第三条（一）：政治素养（10 分）"
+      },
+      {
+        "id": "moral.morality",
+        "field": "morality",
+        "name": "品德修养",
+        "min": "0",
+        "max": "10",
+        "source": "legacy pindeItems 第 549 行、getPindeScore() 第 600–613 行；附件 1 第三条（二）：品德修养（10 分）"
+      },
+      {
+        "id": "moral.discipline",
+        "field": "discipline",
+        "name": "纪律观念",
+        "min": "0",
+        "max": "5",
+        "source": "legacy pindeItems 第 550 行、getPindeScore() 第 600–613 行；附件 1 第三条（三）：纪律观念（5 分）"
+      },
+      {
+        "id": "moral.integrity",
+        "field": "integrity",
+        "name": "诚信评价",
+        "min": "0",
+        "max": "5",
+        "source": "legacy pindeItems 第 551 行、getPindeScore() 第 600–613 行；附件 1 第三条（四）：诚信评价（5 分）"
+      }
+    ]
+  },
+  "competence": {
+    "id": "competence",
+    "name": "综合能力表现",
+    "min": "0",
+    "max": "70",
+    "source": "legacy calc() 第 862 行：clamp(基础分 + 能力分, 0, 70)；附件 2 正文：满分 70 分，采用不超满分累计加分的方式",
+    "basic": [
+      {
+        "type": "linear_capped",
+        "id": "basic.second_classroom",
+        "field": "second_classroom",
+        "name": "第二课堂成绩单",
+        "rate": "0.5",
+        "cap": "5",
+        "source": "legacy calc() 第 853 行：Math.min((parseFloat(...) || 0) * 0.5, 5)；附件 2 第一条：每获得 0.5 积分者基础分记 0.25 分，满分 5 分（阶梯还是连续计分见 docs/rules-issues.md R-004）"
+      },
+      {
+        "type": "linear_capped",
+        "id": "basic.public_service",
+        "field": "public_service",
+        "name": "公益劳动",
+        "rate": "0.5",
+        "cap": "5",
+        "source": "legacy calc() 第 854 行：Math.min((parseFloat(...) || 0) * 0.5, 5)；附件 2 第一条：每完成一次公益劳动者基础分记 0.5 分，满分 5 分"
+      },
+      {
+        "type": "threshold",
+        "id": "basic.fitness_test",
+        "field": "fitness_test",
+        "name": "体质健康",
+        "threshold": "60",
+        "points": "5",
+        "source": "legacy calc() 第 857 行：(!isNaN(v) && v >= 60) ? 5 : 0；附件 2 第一条：体质健康测试成绩达 60 分及以上者，基础分记 5 分"
+      },
+      {
+        "type": "threshold",
+        "id": "basic.dorm_check",
+        "field": "dorm_check",
+        "name": "宿舍管理",
+        "threshold": "60",
+        "points": "5",
+        "source": "legacy calc() 第 858 行：(!isNaN(v) && v >= 60) ? 5 : 0；附件 2 第一条：宿舍安全文明卫生检查平均成绩 60 分及以上者，基础分记 5 分"
+      }
+    ],
+    "ability": {
+      "id": "ability",
+      "field": "ability",
+      "name": "能力分",
+      "min": "0",
+      "max": "50",
+      "source": "legacy calc() 第 861 行：clamp(parseFloat(...) || 0, 0, 50)；附件 2 第二条：能力分分值为 50 分，学生自主申报、认定小组审核"
+    }
+  }
+}
