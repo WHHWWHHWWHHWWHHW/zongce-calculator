@@ -1,0 +1,78 @@
+{
+  "description": "黄金用例（CLAUDE.md §5）。期望值来自 legacy zongce-calculator.html v1.0.1 的 calc() 在 jsdom 中的实际输出，必须永远通过。",
+  "rules_id": "ujn-v1",
+  "cases": [
+    {
+      "id": "G1",
+      "description": "内置示例模板（IMPORT_TEMPLATE）",
+      "input": {
+        "gpa": "3.6524",
+        "quality_mode": "detail",
+        "political": { "mode": "list", "text": "9,8.5,10,7,9.5,8,9,10,6.5,8" },
+        "morality": { "mode": "direct", "value": "9.5" },
+        "discipline": { "mode": "direct", "value": "4.5" },
+        "integrity": { "mode": "direct", "value": "5" },
+        "second_classroom": "2.5",
+        "public_service": "4",
+        "fitness_test": "85",
+        "dorm_check": "92",
+        "ability": "38"
+      },
+      "expected": {
+        "moral_total": "27.6250",
+        "competence_total": "51.2500",
+        "quality_total": "78.8750",
+        "gpa": "3.6524",
+        "final_score": "3.7252"
+      }
+    },
+    {
+      "id": "G2",
+      "description": "仓库 test.xlsx（全角逗号、空格分隔的评议名单）",
+      "input": {
+        "gpa": "5",
+        "quality_mode": "detail",
+        "political": { "mode": "list", "text": "9，1，2" },
+        "morality": { "mode": "list", "text": "8 6 7" },
+        "discipline": { "mode": "direct", "value": "4.5" },
+        "integrity": { "mode": "direct", "value": "5" },
+        "second_classroom": "4",
+        "public_service": "4",
+        "fitness_test": "90",
+        "dorm_check": "90",
+        "ability": "38"
+      },
+      "expected": {
+        "moral_total": "20.5000",
+        "competence_total": "52.0000",
+        "quality_total": "72.5000",
+        "gpa": "5.0000",
+        "final_score": "4.6563"
+      }
+    },
+    {
+      "id": "G3",
+      "description": "封顶、体测 59/宿舍 60 阈值、n=5 去极值（k=1，均值必须为 3）",
+      "input": {
+        "gpa": "4.0",
+        "quality_mode": "detail",
+        "political": { "mode": "list", "text": "1,2,3,4,10" },
+        "morality": { "mode": "direct", "value": "12" },
+        "discipline": { "mode": "direct", "value": "5" },
+        "integrity": { "mode": "direct", "value": "5" },
+        "second_classroom": "20",
+        "public_service": "12",
+        "fitness_test": "59",
+        "dorm_check": "60",
+        "ability": "60"
+      },
+      "expected": {
+        "moral_total": "23.0000",
+        "competence_total": "65.0000",
+        "quality_total": "88.0000",
+        "gpa": "4.0000",
+        "final_score": "4.1000"
+      }
+    }
+  ]
+}
