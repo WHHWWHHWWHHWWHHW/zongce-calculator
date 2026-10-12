@@ -48,6 +48,32 @@ jobs:
       - name: ruff / mypy --strict / 引擎（覆盖率 100% + 对拍）/ 后端（覆盖率 ≥ 80%）
         run: bash scripts/check.sh
 
+  frontend:
+    name: 前端（类型检查 / lint / 单元测试 / 构建）
+    runs-on: ubuntu-24.04
+    env:
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: 安装依赖
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+      - name: API 类型与 docs/api/openapi.json 一致
+        run: pnpm run check:api
+      - run: pnpm run format:check
+      - run: pnpm run lint
+      - run: pnpm run typecheck
+      - name: 单元测试（覆盖率 ≥ 80%）
+        run: pnpm run test
+      - run: pnpm run build
+
   mysql:
     name: 迁移与模型一致性（MySQL 8）
     runs-on: ubuntu-24.04
