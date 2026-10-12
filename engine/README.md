@@ -12,8 +12,10 @@ from decimal import Decimal
 from zongce_engine import PeerRatings, RuleSet, ScoreInput, calculate
 
 rules = RuleSet.from_dict(json.load(open("rules/ujn-v1.json", encoding="utf-8")))
-result = calculate(ScoreInput(gpa=Decimal("3.6524"), political=PeerRatings((Decimal("9"), Decimal("8")))), rules)
-print(result.final_score)          # Decimal，已按规则舍入到 4 位小数
-for item in result.items:          # 分项明细：规则 id、原始值、得分、是否封顶
+result = calculate(
+    ScoreInput(gpa=Decimal("3.6524"), political=PeerRatings((Decimal("9"), Decimal("8")))), rules
+)
+print(result.final_score)  # Decimal，已按规则舍入到 4 位小数
+for item in result.items:  # 分项明细：规则 id、原始值、得分、是否封顶
     print(item.rule_id, item.score, item.capped)
 ```
