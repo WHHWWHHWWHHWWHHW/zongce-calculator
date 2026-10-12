@@ -58,6 +58,7 @@ _COLUMNS = (
     ("综合素质评价成绩", "quality_total"),
     ("综合测评成绩", "final_score"),
 )
+_FORMULA_PREFIXES = ("=", "+", "-", "@")
 _NUMERIC = {
     "gpa",
     "moral_total",
@@ -82,9 +83,12 @@ def export_xlsx(year: AcademicYear, rows: list[RankRow]) -> bytes:
             values.append(Decimal(value) if key in _NUMERIC and value is not None else value)
         sheet.append(values)
     for index, column in enumerate(sheet.iter_cols(min_row=2)):
-        if _COLUMNS[index][1] in _NUMERIC:
-            for cell in column:
+        for cell in column:
+            if _COLUMNS[index][1] in _NUMERIC:
                 cell.number_format = "0.0000"
+            elif isinstance(cell.value, str) and cell.value.startswith(_FORMULA_PREFIXES):
+                # 防止姓名、班级等文本被 Excel 当作公式执行（公式注入）
+                cell.data_type = "s"
     buffer = io.BytesIO()
     workbook.save(buffer)
     return buffer.getvalue()

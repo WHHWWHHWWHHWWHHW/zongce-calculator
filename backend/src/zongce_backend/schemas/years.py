@@ -1,12 +1,11 @@
 """规则版本与学年。"""
 
-from datetime import datetime
 from typing import Annotated, Any
 
 from pydantic import StringConstraints
 
 from ..models import YearStatus
-from .common import ApiModel
+from .common import ApiModel, UtcDatetime
 
 
 class RuleVersionCreate(ApiModel):
@@ -21,7 +20,7 @@ class RuleVersionOut(ApiModel):
     title: str
     sha256: str
     has_ability_catalog: bool
-    created_at: datetime
+    created_at: UtcDatetime
 
 
 class YearCreate(ApiModel):
@@ -38,4 +37,4 @@ class YearOut(ApiModel):
     name: str
     rule_version_id: int
     status: YearStatus
-    created_at: datetime
+    created_at: UtcDatetime

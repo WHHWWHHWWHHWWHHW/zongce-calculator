@@ -155,6 +155,8 @@ def test_evidence(client: TestClient, world: World) -> None:
     download = client.get(f"{API}/evidence/{ids[0]}", headers=world.reviewer)
     assert download.content == PDF
     assert "filename*=UTF-8''%E8%AF%81%E4%B9%A6.pdf" in download.headers["content-disposition"]
+    assert download.headers["x-content-type-options"] == "nosniff"
+    assert detail_time_is_utc(client, world, d["id"])
     assert client.get(f"{API}/evidence/{ids[0]}", headers=world.s3).status_code == 404
     assert client.get(f"{API}/evidence/99999", headers=world.s1).status_code == 404
 
@@ -174,6 +176,11 @@ def test_evidence(client: TestClient, world: World) -> None:
     locked = client.post(url, files={"file": ("x.pdf", PDF)}, headers=world.s1)
     assert locked.json()["error"]["message"] == "只有草稿或被驳回的申报可以上传材料"
     assert client.delete(f"{API}/evidence/{ids[0]}", headers=world.s1).status_code == 400
+
+
+def detail_time_is_utc(client: TestClient, world: World, declaration_id: int) -> bool:
+    detail = client.get(f"{API}/declarations/{declaration_id}", headers=world.s1).json()
+    return all(e["created_at"].endswith("+00:00") for e in detail["evidence"])
 
 
 def _submitted(client: TestClient, world: World, headers: dict[str, str], **fields: Any) -> int:

@@ -1,12 +1,11 @@
 """公示与异议。"""
 
-from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import Field, StringConstraints
 
 from ..models import AppealStatus
-from .common import ApiModel, Reason
+from .common import ApiModel, Reason, UtcDatetime
 from .scores import RankRow
 
 
@@ -23,9 +22,9 @@ class PublicationOut(ApiModel):
     year_id: int
     class_name: str
     title: str
-    starts_at: datetime
-    ends_at: datetime
-    closed_at: datetime | None
+    starts_at: UtcDatetime
+    ends_at: UtcDatetime
+    closed_at: UtcDatetime | None
     is_open: bool
     rows: list[RankRow]
 
@@ -47,5 +46,5 @@ class AppealOut(ApiModel):
     status: AppealStatus
     response: str | None
     handled_by: int | None
-    handled_at: datetime | None
-    created_at: datetime
+    handled_at: UtcDatetime | None
+    created_at: UtcDatetime

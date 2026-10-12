@@ -105,9 +105,8 @@ def download_evidence(
 ) -> Response:
     evidence, data = service.read_evidence(db, user, evidence_id, storage)
     disposition = f"attachment; filename*=UTF-8''{quote(evidence.original_name)}"
-    return Response(
-        data, media_type=evidence.content_type, headers={"Content-Disposition": disposition}
-    )
+    headers = {"Content-Disposition": disposition, "X-Content-Type-Options": "nosniff"}
+    return Response(data, media_type=evidence.content_type, headers=headers)
 
 
 @router.delete("/evidence/{evidence_id}", status_code=204, summary="删除证明材料（草稿或被驳回时）")

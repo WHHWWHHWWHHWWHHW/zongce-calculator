@@ -1,6 +1,5 @@
 """学院成绩数据、核算、预估、排名。"""
 
-from datetime import datetime
 from typing import Literal, Self
 
 from pydantic import Field, model_validator
@@ -8,7 +7,7 @@ from pydantic import Field, model_validator
 from zongce_engine import ItemResult, ScoreResult, format_score
 
 from ..models import CollegeRecord, ScoreField
-from .common import ApiModel, DecimalStr, Reason, dec_str
+from .common import ApiModel, DecimalStr, Reason, UtcDatetime, dec_str
 
 
 class MoralInput(ApiModel):
@@ -108,7 +107,7 @@ class CollegeRecordOut(ApiModel):
     field: ScoreField
     value: str | None
     ratings: list[str] | None
-    updated_at: datetime
+    updated_at: UtcDatetime
 
     @classmethod
     def of(cls, record: CollegeRecord, username: str) -> "CollegeRecordOut":
@@ -154,7 +153,7 @@ class StoredScoreOut(ApiModel):
     competence_total: str | None
     ability_total: str
     rule_version_id: int
-    computed_at: datetime
+    computed_at: UtcDatetime
     detail: dict[str, object]
 
 

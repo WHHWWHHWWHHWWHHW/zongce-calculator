@@ -1,12 +1,11 @@
 """能力分申报、证明材料与审核。"""
 
-from datetime import datetime
 from typing import Annotated
 
 from pydantic import Field, StringConstraints
 
 from ..models import Declaration, DeclarationStatus, EvidenceFile, ReviewAction, ReviewRecord
-from .common import ApiModel, NonNegativeDecimalStr, Reason, dec_str
+from .common import ApiModel, NonNegativeDecimalStr, Reason, UtcDatetime, dec_str
 
 Title = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
 
@@ -41,7 +40,7 @@ class EvidenceOut(ApiModel):
     content_type: str
     size: int
     sha256: str
-    created_at: datetime
+    created_at: UtcDatetime
 
     @classmethod
     def of(cls, item: EvidenceFile) -> "EvidenceOut":
@@ -67,8 +66,8 @@ class DeclarationOut(ApiModel):
     suggested_score: str | None
     approved_score: str | None
     status: DeclarationStatus
-    submitted_at: datetime | None
-    reviewed_at: datetime | None
+    submitted_at: UtcDatetime | None
+    reviewed_at: UtcDatetime | None
     reviewer_id: int | None
     evidence: list[EvidenceOut]
 
@@ -114,7 +113,7 @@ class ReviewOut(ApiModel):
     score_before: str | None
     score_after: str | None
     reason: str
-    created_at: datetime
+    created_at: UtcDatetime
 
     @classmethod
     def of(cls, r: ReviewRecord) -> "ReviewOut":

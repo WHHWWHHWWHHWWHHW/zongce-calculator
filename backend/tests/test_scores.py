@@ -213,7 +213,13 @@ def test_compute_end_to_end_g1(client: TestClient, world: World, db: Session) ->
     assert client.get(f"{API}/years/{world.year_id}/rankings", headers=world.s1).status_code == 403
 
 
-def test_ties_share_rank_and_export(client: TestClient, world: World) -> None:
+def test_ties_share_rank_and_export(client: TestClient, world: World, db: Session) -> None:
+    from zongce_backend.models import User
+
+    student = db.scalar(select(User).where(User.username == "TEST0003"))
+    assert student is not None
+    student.name = '=HYPERLINK("http://example.invalid")'
+    db.commit()
     import_g1(client, world, "TEST0002", "TEST0003")
     compute(client, world)
     rows = client.get(
@@ -233,6 +239,9 @@ def test_ties_share_rank_and_export(client: TestClient, world: World) -> None:
     assert [v[1] for v in values[1:]] == [1, 1, 3]
     # 无能力分：素质 27.625 + 13.25 = 40.875；40.875÷20×25% + 3.6524×75% = 3.2502375
     assert str(values[1][-1]) == "3.2502"
+    names = {sheet.cell(row=r, column=4).value: sheet.cell(row=r, column=4).data_type
+             for r in range(2, sheet.max_row + 1)}  # fmt: skip
+    assert names['=HYPERLINK("http://example.invalid")'] == "s"  # 以文本保存，不是公式
     reviewer_export = client.get(
         f"{API}/years/{world.year_id}/rankings/export", headers=world.reviewer
     )

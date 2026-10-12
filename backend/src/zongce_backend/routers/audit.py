@@ -1,13 +1,11 @@
 """审计日志查询（学院管理员）。"""
 
-from datetime import datetime
-
 from fastapi import APIRouter, Query
 from sqlalchemy import select
 
 from ..deps import AdminUser, DbSession
 from ..models import AuditLog
-from ..schemas.common import ApiModel
+from ..schemas.common import ApiModel, UtcDatetime
 
 router = APIRouter(tags=["审计日志"])
 
@@ -22,7 +20,7 @@ class AuditLogOut(ApiModel):
     before: str | None
     after: str | None
     reason: str | None
-    created_at: datetime
+    created_at: UtcDatetime
 
 
 @router.get("/audit-logs", response_model=list[AuditLogOut], summary="审计日志")
