@@ -1,0 +1,4420 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "综测智能核算平台 API",
+    "description": "济南大学校创项目“基于 AI 辅助审核的综合测评智能核算平台”后端。分数一律以十进制字符串传输；计分由 zongce_engine 完成。",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "登录（学号/账号 + 密码）",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "修改密码（首次登录必须先修改）",
+        "operationId": "change_password_api_v1_auth_change_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "当前用户",
+        "operationId": "me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/import": {
+      "post": {
+        "tags": [
+          "账号管理"
+        ],
+        "summary": "批量导入账号",
+        "description": "上传 .xlsx/.csv，表头需含“学号”“姓名”，可选“班级”“角色”。新账号的随机初始密码只在本次响应中返回一次。",
+        "operationId": "import_users_api_v1_users_import_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_users_api_v1_users_import_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserImportResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "tags": [
+          "账号管理"
+        ],
+        "summary": "账号列表",
+        "operationId": "list_users_api_v1_users_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "class_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Class Name"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Role"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserOut"
+                  },
+                  "title": "Response List Users Api V1 Users Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}": {
+      "patch": {
+        "tags": [
+          "账号管理"
+        ],
+        "summary": "修改账号（姓名、班级、角色、启用状态）",
+        "operationId": "update_user_api_v1_users__user_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}/reset-password": {
+      "post": {
+        "tags": [
+          "账号管理"
+        ],
+        "summary": "重置为随机初始密码",
+        "operationId": "reset_password_api_v1_users__user_id__reset_password_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordReset"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/rules": {
+      "get": {
+        "tags": [
+          "规则与学年"
+        ],
+        "summary": "规则版本列表",
+        "operationId": "list_rules_api_v1_rules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RuleVersionOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Rules Api V1 Rules Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "规则与学年"
+        ],
+        "summary": "导入规则版本",
+        "operationId": "create_rules_api_v1_rules_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleVersionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleVersionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rules/{version_id}/content": {
+      "get": {
+        "tags": [
+          "规则与学年"
+        ],
+        "summary": "规则版本原文（规则 JSON 与能力分目录）",
+        "operationId": "rule_content_api_v1_rules__version_id__content_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Rule Content Api V1 Rules  Version Id  Content Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/years": {
+      "get": {
+        "tags": [
+          "规则与学年"
+        ],
+        "summary": "学年列表",
+        "operationId": "list_years_api_v1_years_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/YearOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Years Api V1 Years Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "规则与学年"
+        ],
+        "summary": "新建学年",
+        "operationId": "create_year_api_v1_years_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/YearCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YearOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/years/{year_id}/status": {
+      "patch": {
+        "tags": [
+          "规则与学年"
+        ],
+        "summary": "学年状态流转",
+        "operationId": "set_status_api_v1_years__year_id__status_patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/YearStatusUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YearOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/years/{year_id}/catalog": {
+      "get": {
+        "tags": [
+          "规则与学年"
+        ],
+        "summary": "该学年的能力分申报目录",
+        "operationId": "year_catalog_api_v1_years__year_id__catalog_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Year Catalog Api V1 Years  Year Id  Catalog Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/declarations": {
+      "post": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "新建申报（草稿）",
+        "operationId": "create_api_v1_declarations_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeclarationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeclarationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "申报列表",
+        "description": "mine=true 只看自己的；否则学院管理员看全部、班级审核员看本班、学生看自己的。",
+        "operationId": "list_declarations_api_v1_declarations_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mine",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Mine"
+            }
+          },
+          {
+            "name": "year_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DeclarationStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "class_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Class Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeclarationOut"
+                  },
+                  "title": "Response List Declarations Api V1 Declarations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/declarations/{declaration_id}": {
+      "get": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "申报详情",
+        "operationId": "get_api_v1_declarations__declaration_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "declaration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Declaration Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeclarationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "修改申报",
+        "operationId": "update_api_v1_declarations__declaration_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "declaration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Declaration Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeclarationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeclarationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/declarations/{declaration_id}/submit": {
+      "post": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "提交审核",
+        "operationId": "submit_api_v1_declarations__declaration_id__submit_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "declaration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Declaration Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeclarationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/declarations/{declaration_id}/withdraw": {
+      "post": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "撤回",
+        "operationId": "withdraw_api_v1_declarations__declaration_id__withdraw_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "declaration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Declaration Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeclarationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/declarations/{declaration_id}/evidence": {
+      "post": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "上传证明材料（PDF/PNG/JPEG）",
+        "operationId": "upload_evidence_api_v1_declarations__declaration_id__evidence_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "declaration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Declaration Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_evidence_api_v1_declarations__declaration_id__evidence_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evidence/{evidence_id}": {
+      "get": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "下载证明材料",
+        "operationId": "download_evidence_api_v1_evidence__evidence_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Evidence Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/octet-stream": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "删除证明材料（草稿或被驳回时）",
+        "operationId": "delete_evidence_api_v1_evidence__evidence_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Evidence Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/declarations/{declaration_id}/review": {
+      "post": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "审核：通过 / 改分 / 驳回（理由必填）",
+        "operationId": "review_api_v1_declarations__declaration_id__review_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "declaration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Declaration Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeclarationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/declarations/{declaration_id}/reviews": {
+      "get": {
+        "tags": [
+          "申报与审核"
+        ],
+        "summary": "审核记录",
+        "operationId": "reviews_api_v1_declarations__declaration_id__reviews_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "declaration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Declaration Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReviewOut"
+                  },
+                  "title": "Response Reviews Api V1 Declarations  Declaration Id  Reviews Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/score/preview": {
+      "post": {
+        "tags": [
+          "成绩与核算"
+        ],
+        "summary": "即时预估（不保存）",
+        "description": "前端的即时预估一律调用本接口，前端不实现计分逻辑（CLAUDE.md §6）。分数均为十进制字符串。",
+        "operationId": "preview_api_v1_score_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScoreOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/years/{year_id}/college-data/import": {
+      "post": {
+        "tags": [
+          "成绩与核算"
+        ],
+        "summary": "导入学院成绩表",
+        "description": "表头需含“学号”；其余列按关键词识别（与 legacy 表格导入相同），如“学分绩点”“第二课堂”“体测”“政治素养”等。思想品德四项的单元格有多个数字时视为评议名单。“能力分”列会被忽略（能力分来自审核通过的申报）。",
+        "operationId": "import_college_data_api_v1_years__year_id__college_data_import_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_college_data_api_v1_years__year_id__college_data_import_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollegeImportResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/years/{year_id}/college-data": {
+      "get": {
+        "tags": [
+          "成绩与核算"
+        ],
+        "summary": "学院成绩数据",
+        "operationId": "list_college_data_api_v1_years__year_id__college_data_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Username"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CollegeRecordOut"
+                  },
+                  "title": "Response List College Data Api V1 Years  Year Id  College Data Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/years/{year_id}/college-data/{username}/{field}": {
+      "put": {
+        "tags": [
+          "成绩与核算"
+        ],
+        "summary": "修改单项成绩数据（理由必填）",
+        "operationId": "update_college_data_api_v1_years__year_id__college_data__username___field__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          },
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          },
+          {
+            "name": "field",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ScoreField"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollegeRecordUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollegeRecordOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/years/{year_id}/scores/compute": {
+      "post": {
+        "tags": [
+          "成绩与核算"
+        ],
+        "summary": "核算",
+        "operationId": "compute_api_v1_years__year_id__scores_compute_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComputeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComputeResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/years/{year_id}/scores": {
+      "get": {
+        "tags": [
+          "成绩与核算"
+        ],
+        "summary": "核算结果",
+        "operationId": "scores_api_v1_years__year_id__scores_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          },
+          {
+            "name": "class_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Class Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StoredScoreOut"
+                  },
+                  "title": "Response Scores Api V1 Years  Year Id  Scores Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/years/{year_id}/rankings": {
+      "get": {
+        "tags": [
+          "成绩与核算"
+        ],
+        "summary": "班级排名",
+        "operationId": "rankings_api_v1_years__year_id__rankings_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          },
+          {
+            "name": "class_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Class Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RankRow"
+                  },
+                  "title": "Response Rankings Api V1 Years  Year Id  Rankings Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/years/{year_id}/rankings/export": {
+      "get": {
+        "tags": [
+          "成绩与核算"
+        ],
+        "summary": "导出排名 Excel",
+        "operationId": "export_rankings_api_v1_years__year_id__rankings_export_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          },
+          {
+            "name": "class_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Class Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/years/{year_id}/publications": {
+      "post": {
+        "tags": [
+          "公示与异议"
+        ],
+        "summary": "发布班级公示（快照当前核算结果，默认 3 天）",
+        "operationId": "create_api_v1_years__year_id__publications_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/publications": {
+      "get": {
+        "tags": [
+          "公示与异议"
+        ],
+        "summary": "公示列表",
+        "operationId": "list_publications_api_v1_publications_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicationOut"
+                  },
+                  "title": "Response List Publications Api V1 Publications Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/publications/{publication_id}": {
+      "get": {
+        "tags": [
+          "公示与异议"
+        ],
+        "summary": "公示详情",
+        "operationId": "get_api_v1_publications__publication_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "publication_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Publication Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/publications/{publication_id}/close": {
+      "post": {
+        "tags": [
+          "公示与异议"
+        ],
+        "summary": "提前结束公示",
+        "operationId": "close_api_v1_publications__publication_id__close_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "publication_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Publication Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/publications/{publication_id}/appeals": {
+      "post": {
+        "tags": [
+          "公示与异议"
+        ],
+        "summary": "提出异议（公示期内，本班学生）",
+        "operationId": "create_appeal_api_v1_publications__publication_id__appeals_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "publication_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Publication Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppealCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppealOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/appeals": {
+      "get": {
+        "tags": [
+          "公示与异议"
+        ],
+        "summary": "异议列表（学生只看自己的）",
+        "operationId": "list_appeals_api_v1_appeals_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "publication_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Publication Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppealOut"
+                  },
+                  "title": "Response List Appeals Api V1 Appeals Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/appeals/{appeal_id}/resolve": {
+      "post": {
+        "tags": [
+          "公示与异议"
+        ],
+        "summary": "处理异议",
+        "operationId": "resolve_api_v1_appeals__appeal_id__resolve_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "appeal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Appeal Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppealResolve"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppealOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audit-logs": {
+      "get": {
+        "tags": [
+          "审计日志"
+        ],
+        "summary": "审计日志",
+        "operationId": "list_logs_api_v1_audit_logs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action"
+            }
+          },
+          {
+            "name": "entity_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Entity Type"
+            }
+          },
+          {
+            "name": "entity_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Entity Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLogOut"
+                  },
+                  "title": "Response List Logs Api V1 Audit Logs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "系统"
+        ],
+        "summary": "健康检查",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Api V1 Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AppealCreate": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "AppealCreate"
+      },
+      "AppealOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "publication_id": {
+            "type": "integer",
+            "title": "Publication Id"
+          },
+          "student_id": {
+            "type": "integer",
+            "title": "Student Id"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AppealStatus"
+          },
+          "response": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response"
+          },
+          "handled_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handled By"
+          },
+          "handled_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handled At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "publication_id",
+          "student_id",
+          "content",
+          "status",
+          "response",
+          "handled_by",
+          "handled_at",
+          "created_at"
+        ],
+        "title": "AppealOut"
+      },
+      "AppealResolve": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "rejected"
+            ],
+            "title": "Status"
+          },
+          "response": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Response"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "response"
+        ],
+        "title": "AppealResolve"
+      },
+      "AppealStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "accepted",
+          "rejected"
+        ],
+        "title": "AppealStatus"
+      },
+      "AuditLogOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "actor_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "title": "Entity Id"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before"
+          },
+          "after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "actor_id",
+          "action",
+          "entity_type",
+          "entity_id",
+          "field",
+          "before",
+          "after",
+          "reason",
+          "created_at"
+        ],
+        "title": "AuditLogOut"
+      },
+      "Body_import_college_data_api_v1_years__year_id__college_data_import_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_college_data_api_v1_years__year_id__college_data_import_post"
+      },
+      "Body_import_users_api_v1_users_import_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_users_api_v1_users_import_post"
+      },
+      "Body_upload_evidence_api_v1_declarations__declaration_id__evidence_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_evidence_api_v1_declarations__declaration_id__evidence_post"
+      },
+      "ChangePasswordRequest": {
+        "properties": {
+          "old_password": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Old Password"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "old_password",
+          "new_password"
+        ],
+        "title": "ChangePasswordRequest"
+      },
+      "CollegeImportResult": {
+        "properties": {
+          "batch_id": {
+            "type": "integer",
+            "title": "Batch Id"
+          },
+          "rows": {
+            "type": "integer",
+            "title": "Rows"
+          },
+          "changed": {
+            "type": "integer",
+            "title": "Changed"
+          },
+          "unchanged": {
+            "type": "integer",
+            "title": "Unchanged"
+          },
+          "mapped_columns": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Mapped Columns"
+          },
+          "ignored_columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ignored Columns"
+          },
+          "errors": {
+            "items": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "rows",
+          "changed",
+          "unchanged",
+          "mapped_columns",
+          "ignored_columns",
+          "errors"
+        ],
+        "title": "CollegeImportResult"
+      },
+      "CollegeRecordOut": {
+        "properties": {
+          "student_username": {
+            "type": "string",
+            "title": "Student Username"
+          },
+          "field": {
+            "$ref": "#/components/schemas/ScoreField"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "ratings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratings"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_username",
+          "field",
+          "value",
+          "ratings",
+          "updated_at"
+        ],
+        "title": "CollegeRecordOut"
+      },
+      "CollegeRecordUpdate": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "ratings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+                },
+                "type": "array",
+                "maxItems": 500,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratings"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "CollegeRecordUpdate"
+      },
+      "ComputeRequest": {
+        "properties": {
+          "class_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Class Name"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "default": "核算"
+          }
+        },
+        "type": "object",
+        "title": "ComputeRequest"
+      },
+      "ComputeResult": {
+        "properties": {
+          "computed": {
+            "type": "integer",
+            "title": "Computed"
+          },
+          "changed": {
+            "type": "integer",
+            "title": "Changed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "computed",
+          "changed"
+        ],
+        "title": "ComputeResult"
+      },
+      "CreatedAccount": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "initial_password": {
+            "type": "string",
+            "title": "Initial Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "name",
+          "initial_password"
+        ],
+        "title": "CreatedAccount"
+      },
+      "DeclarationCreate": {
+        "properties": {
+          "year_id": {
+            "type": "integer",
+            "title": "Year Id"
+          },
+          "catalog_code": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Catalog Code"
+          },
+          "option_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Option Code"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Description",
+            "default": ""
+          },
+          "team_size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Size"
+          },
+          "team_position": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Position"
+          },
+          "concurrent_rank": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concurrent Rank"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "claimed_score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimed Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year_id",
+          "catalog_code",
+          "title"
+        ],
+        "title": "DeclarationCreate"
+      },
+      "DeclarationOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "year_id": {
+            "type": "integer",
+            "title": "Year Id"
+          },
+          "student_id": {
+            "type": "integer",
+            "title": "Student Id"
+          },
+          "student_username": {
+            "type": "string",
+            "title": "Student Username"
+          },
+          "student_name": {
+            "type": "string",
+            "title": "Student Name"
+          },
+          "class_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Class Name"
+          },
+          "catalog_code": {
+            "type": "string",
+            "title": "Catalog Code"
+          },
+          "option_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Option Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "team_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Size"
+          },
+          "team_position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Position"
+          },
+          "concurrent_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concurrent Rank"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "claimed_score": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimed Score"
+          },
+          "suggested_score": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Score"
+          },
+          "approved_score": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Score"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DeclarationStatus"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "reviewer_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Id"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceOut"
+            },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "year_id",
+          "student_id",
+          "student_username",
+          "student_name",
+          "class_name",
+          "catalog_code",
+          "option_code",
+          "title",
+          "description",
+          "team_size",
+          "team_position",
+          "concurrent_rank",
+          "quantity",
+          "claimed_score",
+          "suggested_score",
+          "approved_score",
+          "status",
+          "submitted_at",
+          "reviewed_at",
+          "reviewer_id",
+          "evidence"
+        ],
+        "title": "DeclarationOut"
+      },
+      "DeclarationStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "submitted",
+          "approved",
+          "rejected",
+          "withdrawn"
+        ],
+        "title": "DeclarationStatus"
+      },
+      "DeclarationUpdate": {
+        "properties": {
+          "option_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Option Code"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "team_size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Size"
+          },
+          "team_position": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team Position"
+          },
+          "concurrent_rank": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concurrent Rank"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "claimed_score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimed Score"
+          }
+        },
+        "type": "object",
+        "title": "DeclarationUpdate"
+      },
+      "EvidenceOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "original_name": {
+            "type": "string",
+            "title": "Original Name"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "original_name",
+          "content_type",
+          "size",
+          "sha256",
+          "created_at"
+        ],
+        "title": "EvidenceOut"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ItemOut": {
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id"
+          },
+          "score": {
+            "type": "string",
+            "title": "Score"
+          },
+          "raw": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw"
+          },
+          "capped": {
+            "type": "boolean",
+            "title": "Capped"
+          },
+          "floored": {
+            "type": "boolean",
+            "title": "Floored"
+          },
+          "peer_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peer Count"
+          },
+          "peer_trimmed_per_side": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peer Trimmed Per Side"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rule_id",
+          "score",
+          "raw",
+          "capped",
+          "floored",
+          "peer_count",
+          "peer_trimmed_per_side"
+        ],
+        "title": "ItemOut"
+      },
+      "LoginRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
+      "Message": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "Message"
+      },
+      "MoralInput": {
+        "properties": {
+          "score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "ratings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+                },
+                "type": "array",
+                "maxItems": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratings"
+          },
+          "ratings_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratings Text"
+          }
+        },
+        "type": "object",
+        "title": "MoralInput",
+        "description": "思想品德子项，三选一：直接得分、评议名单（数组）、评议名单文本（legacy 文本框格式）。"
+      },
+      "PasswordReset": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "initial_password": {
+            "type": "string",
+            "title": "Initial Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "initial_password"
+        ],
+        "title": "PasswordReset"
+      },
+      "PreviewRequest": {
+        "properties": {
+          "rule_version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Version Id",
+            "description": "省略时使用最新的规则版本"
+          },
+          "gpa": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gpa"
+          },
+          "quality_mode": {
+            "type": "string",
+            "enum": [
+              "detail",
+              "direct"
+            ],
+            "title": "Quality Mode",
+            "default": "detail"
+          },
+          "quality_direct": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Direct"
+          },
+          "political": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoralInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "morality": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoralInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "discipline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoralInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "integrity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoralInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "second_classroom": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Second Classroom"
+          },
+          "public_service": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Service"
+          },
+          "fitness_test": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fitness Test"
+          },
+          "dorm_check": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dorm Check"
+          },
+          "ability": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ability"
+          }
+        },
+        "type": "object",
+        "title": "PreviewRequest"
+      },
+      "PublicationCreate": {
+        "properties": {
+          "class_name": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Class Name"
+          },
+          "days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days",
+            "description": "省略时用配置的默认天数（3 天）"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "class_name"
+        ],
+        "title": "PublicationCreate"
+      },
+      "PublicationOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "year_id": {
+            "type": "integer",
+            "title": "Year Id"
+          },
+          "class_name": {
+            "type": "string",
+            "title": "Class Name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "is_open": {
+            "type": "boolean",
+            "title": "Is Open"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/RankRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "year_id",
+          "class_name",
+          "title",
+          "starts_at",
+          "ends_at",
+          "closed_at",
+          "is_open",
+          "rows"
+        ],
+        "title": "PublicationOut"
+      },
+      "RankRow": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "class_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Class Name"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "final_score": {
+            "type": "string",
+            "title": "Final Score"
+          },
+          "gpa": {
+            "type": "string",
+            "title": "Gpa"
+          },
+          "quality_total": {
+            "type": "string",
+            "title": "Quality Total"
+          },
+          "moral_total": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moral Total"
+          },
+          "competence_total": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competence Total"
+          },
+          "ability_total": {
+            "type": "string",
+            "title": "Ability Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "class_name",
+          "username",
+          "name",
+          "final_score",
+          "gpa",
+          "quality_total",
+          "moral_total",
+          "competence_total",
+          "ability_total"
+        ],
+        "title": "RankRow"
+      },
+      "ReviewAction": {
+        "type": "string",
+        "enum": [
+          "approve",
+          "adjust",
+          "reject"
+        ],
+        "title": "ReviewAction"
+      },
+      "ReviewOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "declaration_id": {
+            "type": "integer",
+            "title": "Declaration Id"
+          },
+          "reviewer_id": {
+            "type": "integer",
+            "title": "Reviewer Id"
+          },
+          "action": {
+            "$ref": "#/components/schemas/ReviewAction"
+          },
+          "score_before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Before"
+          },
+          "score_after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score After"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "declaration_id",
+          "reviewer_id",
+          "action",
+          "score_before",
+          "score_after",
+          "reason",
+          "created_at"
+        ],
+        "title": "ReviewOut"
+      },
+      "ReviewRequest": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/ReviewAction"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "reason"
+        ],
+        "title": "ReviewRequest"
+      },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "student",
+          "class_reviewer",
+          "college_admin"
+        ],
+        "title": "Role"
+      },
+      "RowError": {
+        "properties": {
+          "row": {
+            "type": "integer",
+            "title": "Row"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row",
+          "message"
+        ],
+        "title": "RowError"
+      },
+      "RuleVersionCreate": {
+        "properties": {
+          "content": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Content"
+          },
+          "ability_catalog": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ability Catalog"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "RuleVersionCreate"
+      },
+      "RuleVersionOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "has_ability_catalog": {
+            "type": "boolean",
+            "title": "Has Ability Catalog"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "rule_id",
+          "version",
+          "title",
+          "sha256",
+          "has_ability_catalog",
+          "created_at"
+        ],
+        "title": "RuleVersionOut"
+      },
+      "ScoreField": {
+        "type": "string",
+        "enum": [
+          "gpa",
+          "quality_direct",
+          "political",
+          "morality",
+          "discipline",
+          "integrity",
+          "second_classroom",
+          "public_service",
+          "fitness_test",
+          "dorm_check"
+        ],
+        "title": "ScoreField",
+        "description": "学院成绩表中的计分输入项（字段名与 CLAUDE.md §4 一致）。"
+      },
+      "ScoreOut": {
+        "properties": {
+          "rules_id": {
+            "type": "string",
+            "title": "Rules Id"
+          },
+          "rules_version": {
+            "type": "string",
+            "title": "Rules Version"
+          },
+          "final_score": {
+            "type": "string",
+            "title": "Final Score"
+          },
+          "gpa": {
+            "type": "string",
+            "title": "Gpa"
+          },
+          "quality_total": {
+            "type": "string",
+            "title": "Quality Total"
+          },
+          "moral_total": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moral Total"
+          },
+          "competence_total": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competence Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rules_id",
+          "rules_version",
+          "final_score",
+          "gpa",
+          "quality_total",
+          "moral_total",
+          "competence_total",
+          "items"
+        ],
+        "title": "ScoreOut",
+        "description": "计分结果。各合计值为 4 位小数的展示值；精确值见 items[].raw / score。"
+      },
+      "StoredScoreOut": {
+        "properties": {
+          "student_username": {
+            "type": "string",
+            "title": "Student Username"
+          },
+          "student_name": {
+            "type": "string",
+            "title": "Student Name"
+          },
+          "class_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Class Name"
+          },
+          "final_score": {
+            "type": "string",
+            "title": "Final Score"
+          },
+          "gpa": {
+            "type": "string",
+            "title": "Gpa"
+          },
+          "quality_total": {
+            "type": "string",
+            "title": "Quality Total"
+          },
+          "moral_total": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moral Total"
+          },
+          "competence_total": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competence Total"
+          },
+          "ability_total": {
+            "type": "string",
+            "title": "Ability Total"
+          },
+          "rule_version_id": {
+            "type": "integer",
+            "title": "Rule Version Id"
+          },
+          "computed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Computed At"
+          },
+          "detail": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_username",
+          "student_name",
+          "class_name",
+          "final_score",
+          "gpa",
+          "quality_total",
+          "moral_total",
+          "competence_total",
+          "ability_total",
+          "rule_version_id",
+          "computed_at",
+          "detail"
+        ],
+        "title": "StoredScoreOut"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "must_change_password": {
+            "type": "boolean",
+            "title": "Must Change Password"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "must_change_password",
+          "user"
+        ],
+        "title": "TokenResponse"
+      },
+      "UserImportResult": {
+        "properties": {
+          "created": {
+            "items": {
+              "$ref": "#/components/schemas/CreatedAccount"
+            },
+            "type": "array",
+            "title": "Created"
+          },
+          "updated": {
+            "type": "integer",
+            "title": "Updated"
+          },
+          "unchanged": {
+            "type": "integer",
+            "title": "Unchanged"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/RowError"
+            },
+            "type": "array",
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created",
+          "updated",
+          "unchanged",
+          "errors"
+        ],
+        "title": "UserImportResult"
+      },
+      "UserOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "class_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Class Name"
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/Role"
+            },
+            "type": "array",
+            "title": "Roles"
+          },
+          "must_change_password": {
+            "type": "boolean",
+            "title": "Must Change Password"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "name",
+          "class_name",
+          "roles",
+          "must_change_password",
+          "is_active"
+        ],
+        "title": "UserOut"
+      },
+      "UserUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "class_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Class Name"
+          },
+          "roles": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Role"
+                },
+                "type": "array",
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roles"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "title": "UserUpdate"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "YearCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{4}$",
+            "title": "Name"
+          },
+          "rule_version_id": {
+            "type": "integer",
+            "title": "Rule Version Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "rule_version_id"
+        ],
+        "title": "YearCreate"
+      },
+      "YearOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "rule_version_id": {
+            "type": "integer",
+            "title": "Rule Version Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/YearStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "rule_version_id",
+          "status",
+          "created_at"
+        ],
+        "title": "YearOut"
+      },
+      "YearStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "open",
+          "reviewing",
+          "closed"
+        ],
+        "title": "YearStatus"
+      },
+      "YearStatusUpdate": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/YearStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "YearStatusUpdate"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "description": "登录接口返回的 access_token",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

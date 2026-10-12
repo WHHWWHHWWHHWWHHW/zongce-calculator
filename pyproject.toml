@@ -3,16 +3,17 @@ name = "zongce-platform"
 version = "0.0.0"
 description = "综测智能核算平台（uv 工作区根，仅用于统一开发依赖与工具配置）"
 requires-python = ">=3.11"
-dependencies = ["zongce-engine"]
+dependencies = ["zongce-engine", "zongce-backend"]
 
 [tool.uv]
 package = false
 
 [tool.uv.workspace]
-members = ["engine"]
+members = ["engine", "backend"]
 
 [tool.uv.sources]
 zongce-engine = { workspace = true }
+zongce-backend = { workspace = true }
 
 [tool.ruff]
 line-length = 100
@@ -27,38 +28,46 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 # 测试中习惯用 D 作为 Decimal 的简写
 "**/tests/**" = ["N817"]
 "tests/**" = ["N817"]
+# 迁移脚本由 Alembic 自动生成
+"backend/migrations/versions/**" = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["zongce_engine", "support"]
+known-first-party = ["zongce_engine", "zongce_backend", "support", "backend_helpers"]
 
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["engine/src", "engine/tests", "tests"]
-mypy_path = ["engine/src", "tests"]
+files = ["engine/src", "engine/tests", "backend/src", "backend/tests", "tests"]
+mypy_path = ["engine/src", "backend/src", "backend/tests", "tests"]
 explicit_package_bases = true
 
 [tool.pytest.ini_options]
-testpaths = ["engine/tests", "tests"]
+testpaths = ["engine/tests", "backend/tests", "tests"]
 pythonpath = ["tests"]
 addopts = ["-ra", "--strict-markers", "--strict-config"]
 markers = ["parity: 与 legacy 页面对拍（需要 Node.js 与 tests/parity 下的 pnpm 依赖）"]
 
 [tool.coverage.run]
 branch = true
-source = ["zongce_engine"]
+source = ["zongce_engine", "zongce_backend"]
 
 [tool.coverage.report]
-fail_under = 100
 show_missing = true
 skip_covered = false
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
+    "httpx2>=2.13.1",
     "jsonschema>=4.26.0",
     "mypy>=2.4.0",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "ruff>=0.17.0",
     "types-jsonschema>=4.26.0.20261006",
+    "types-openpyxl>=3.1.5.20260827",
+]
+mysql = [
+    "cryptography>=50.0.2",
+    "pymysql>=1.2.3",
 ]

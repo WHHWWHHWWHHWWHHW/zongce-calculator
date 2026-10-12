@@ -1,0 +1,36 @@
+[project]
+name = "zongce-backend"
+version = "0.1.0"
+description = "综测智能核算平台后端（FastAPI）"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+dependencies = [
+    "alembic>=1.20.0",
+    "argon2-cffi>=25.1.0",
+    "fastapi>=0.143.0",
+    "openpyxl>=3.1.5",
+    "pydantic>=2",
+    "pydantic-settings>=2.15.0",
+    "pyjwt>=2.15.1",
+    "python-multipart>=0.0.32",
+    "sqlalchemy>=2",
+    "uvicorn>=0.54.0",
+    "zongce-engine",
+]
+
+[project.optional-dependencies]
+mysql = [
+    "cryptography>=50.0.2",
+    "pymysql>=1.2.3",
+]
+
+[project.scripts]
+zongce = "zongce_backend.cli:main"
+
+[tool.uv.sources]
+zongce-engine = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13"]
+build-backend = "uv_build"
