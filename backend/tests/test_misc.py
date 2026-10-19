@@ -1,5 +1,6 @@
 """底层模块与命令行。"""
 
+import io
 import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -91,6 +92,12 @@ def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         cli.main(["create-admin", "--username", "TESTADMIN"])
     with pytest.raises(SystemExit, match="不一致"):
         cli.main(["create-admin", "--username", "TESTADMIN2"])
+
+    monkeypatch.setattr("sys.stdin", io.StringIO("Script12345\n"))
+    cli.main(["create-admin", "--username", "TESTADMIN3", "--password-stdin"])
+    monkeypatch.setattr("sys.stdin", io.StringIO("short\n"))
+    with pytest.raises(SystemExit, match="至少 8 位"):
+        cli.main(["create-admin", "--username", "TESTADMIN4", "--password-stdin"])
 
     rules = tmp_path / "rules.json"
     rules.write_text(json.dumps(RULES), encoding="utf-8")

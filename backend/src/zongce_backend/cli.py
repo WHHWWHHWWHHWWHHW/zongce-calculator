@@ -67,6 +67,9 @@ def main(argv: list[str] | None = None) -> None:
     admin = sub.add_parser("create-admin", help="创建学院管理员账号")
     admin.add_argument("--username", required=True)
     admin.add_argument("--name", default="学院管理员")
+    admin.add_argument(
+        "--password-stdin", action="store_true", help="从标准输入读取密码（用于脚本，不回显）"
+    )
     load = sub.add_parser("load-rules", help="导入规则版本（及能力分目录）")
     load.add_argument("rules", type=Path)
     load.add_argument("--catalog", type=Path)
@@ -90,9 +93,14 @@ def main(argv: list[str] | None = None) -> None:
     if args.command == "init-db":
         init_db(settings)
     elif args.command == "create-admin":
-        password = getpass.getpass("管理员密码（至少 8 位）：")
-        if len(password) < 8 or password != getpass.getpass("再输入一次："):
-            sys.exit("密码过短或两次输入不一致")
+        if args.password_stdin:
+            password = sys.stdin.readline().rstrip("\n")
+            if len(password) < 8:
+                sys.exit("密码至少 8 位")
+        else:
+            password = getpass.getpass("管理员密码（至少 8 位）：")
+            if len(password) < 8 or password != getpass.getpass("再输入一次："):
+                sys.exit("密码过短或两次输入不一致")
         create_admin(settings, args.username, args.name, password)
     elif args.command == "load-rules":
         load_rules(settings, args.rules, args.catalog)
