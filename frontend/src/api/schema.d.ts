@@ -654,6 +654,29 @@ export interface paths {
 export type webhooks = Record<string, never>
 export interface components {
   schemas: {
+    /** AbilityCatalog */
+    AbilityCatalog: {
+      /** Id */
+      id: string
+      /** Title */
+      title: string
+      /** Source Document */
+      source_document: string
+      /**
+       * Notes
+       * @default
+       */
+      notes: string
+      /** Concurrent Coefficients */
+      concurrent_coefficients: string[]
+      /**
+       * Caps
+       * @default []
+       */
+      caps: components['schemas']['CapGroup'][]
+      /** Items */
+      items: components['schemas']['CatalogItem'][]
+    }
     /** AppealCreate */
     AppealCreate: {
       /** Content */
@@ -667,6 +690,12 @@ export interface components {
       publication_id: number
       /** Student Id */
       student_id: number
+      /** Student Username */
+      student_username: string
+      /** Student Name */
+      student_name: string
+      /** Class Name */
+      class_name: string | null
       /** Content */
       content: string
       status: components['schemas']['AppealStatus']
@@ -737,6 +766,72 @@ export interface components {
     Body_upload_evidence_api_v1_declarations__declaration_id__evidence_post: {
       /** File */
       file: string
+    }
+    /** CapGroup */
+    CapGroup: {
+      /** Code */
+      code: string
+      /** Name */
+      name: string
+      /** Max */
+      max: string
+      /** Source */
+      source: string
+    }
+    /** CatalogItem */
+    CatalogItem: {
+      /** Code */
+      code: string
+      /** Group */
+      group: string
+      /** Name */
+      name: string
+      /**
+       * Scoring
+       * @enum {string}
+       */
+      scoring: 'fixed' | 'per_unit' | 'manual'
+      /**
+       * Options
+       * @default []
+       */
+      options: components['schemas']['CatalogOption'][]
+      /** Unit Name */
+      unit_name?: string | null
+      /** Unit Score */
+      unit_score?: string | null
+      /** Min Score */
+      min_score?: string | null
+      /** Max Score */
+      max_score?: string | null
+      /**
+       * Team
+       * @default false
+       */
+      team: boolean
+      /**
+       * Concurrent
+       * @default false
+       */
+      concurrent: boolean
+      /** Cap Group */
+      cap_group?: string | null
+      /**
+       * Notes
+       * @default
+       */
+      notes: string
+      /** Source */
+      source: string
+    }
+    /** CatalogOption */
+    CatalogOption: {
+      /** Code */
+      code: string
+      /** Name */
+      name: string
+      /** Score */
+      score: string
     }
     /** ChangePasswordRequest */
     ChangePasswordRequest: {
@@ -1737,9 +1832,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': {
-            [key: string]: unknown
-          }
+          'application/json': components['schemas']['AbilityCatalog']
         }
       }
       /** @description Validation Error */

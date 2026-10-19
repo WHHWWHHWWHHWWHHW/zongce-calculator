@@ -1,0 +1,82 @@
+:root {
+  --app-max-width: 1200px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--el-bg-color-page);
+  color: var(--el-text-color-primary);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    sans-serif;
+}
+
+.page {
+  max-width: var(--app-max-width);
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.muted {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.score {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 审核工作台：申报分与建议分不一致等需要重点核对的行 */
+.el-table .row-discrepant {
+  --el-table-tr-bg-color: var(--el-color-danger-light-9);
+}
+
+.diff {
+  color: var(--el-color-danger);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 12px;
+  }
+
+  .el-dialog {
+    --el-dialog-width: 94vw !important;
+  }
+
+  .el-form-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .el-form-item .el-form-item__label {
+    justify-content: flex-start;
+  }
+}
