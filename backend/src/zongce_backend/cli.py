@@ -5,6 +5,8 @@ import getpass
 import json
 import os
 import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from alembic import command
@@ -22,8 +24,15 @@ from .services.rules import create_rule_version
 ALEMBIC_INI = Path(__file__).resolve().parents[2] / "alembic.ini"
 
 
-def _session(settings: Settings) -> Session:
-    return make_session_factory(make_engine(settings.database_url))()
+@contextmanager
+def _session(settings: Settings) -> Iterator[Session]:
+    """命令行用的会话；用完释放连接池，避免遗留未关闭的数据库连接。"""
+    engine = make_engine(settings.database_url)
+    try:
+        with make_session_factory(engine)() as db:
+            yield db
+    finally:
+        engine.dispose()
 
 
 def init_db(settings: Settings) -> None:
@@ -87,6 +96,7 @@ def main(argv: list[str] | None = None) -> None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         text = json.dumps(app.openapi(), ensure_ascii=False, indent=2) + "\n"
         args.output.write_text(text, encoding="utf-8")
+        app.state.engine.dispose()
         return
 
     settings = Settings()  # type: ignore[call-arg]
