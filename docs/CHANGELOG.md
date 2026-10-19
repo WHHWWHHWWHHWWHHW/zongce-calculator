@@ -6,7 +6,8 @@
 
 ### 新增
 
-- 前端基础（M2，进行中）：类型化 API 客户端、登录态、路由守卫、单元测试；页面待组件库选定后实现。
+- 前端（M2，Element Plus）：学生申报、我的成绩、成绩预估、公示与异议、审核工作台（差异标红）、管理后台；Playwright 端到端测试与 375px 检查；演示截图与测试报告草稿。
+- 计分明细提供 4 位小数展示值（score_display / raw_display）。
 - 后端 `zongce_backend`（M1）：账号导入与强制改密、JWT + 三种角色、能力分申报与审核、证明材料上传、学院成绩表导入、核算与即时预估、班级排名与 Excel 导出、公示与异议、审计日志；Alembic 迁移；命令行 `zongce`。
 - 能力分申报目录 `rules/ability-catalog-xxgc-2020.json`（细则附件 2）。
 - `docs/本机运行.md`、`deploy/.env.example`、`docs/api/openapi.json`、`scripts/check.sh`；CI 增加 MySQL 8 迁移任务。
