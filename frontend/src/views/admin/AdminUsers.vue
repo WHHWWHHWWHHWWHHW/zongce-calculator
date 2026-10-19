@@ -7,9 +7,11 @@ import { useAuthStore } from '@/stores/auth'
 import { errorMessage } from '@/utils/errors'
 import { fileUpload, saveBlob, toCsv } from '@/utils/files'
 import { ROLE_NAMES } from '@/utils/format'
+import { useNarrow } from '@/utils/viewport'
 
 type User = Schemas['UserOut']
 
+const narrow = useNarrow()
 const auth = useAuthStore()
 const result = ref<Schemas['UserImportResult'] | null>(null)
 const users = ref<Schemas['UserOut'][]>([])
@@ -142,7 +144,7 @@ async function toggleActive(user: Schemas['UserOut']): Promise<void> {
           {{ row.is_active ? (row.must_change_password ? '未改初始密码' : '正常') : '已停用' }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column label="操作" width="150" :fixed="narrow ? false : 'right'">
         <template #default="{ row }">
           <el-button link type="primary" @click="resetPassword(row as User)">重置密码</el-button>
           <el-button

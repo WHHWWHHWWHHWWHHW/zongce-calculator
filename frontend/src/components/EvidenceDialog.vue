@@ -7,9 +7,11 @@ import type { Declaration } from '@/utils/catalog'
 import { errorMessage } from '@/utils/errors'
 import { fileUpload, saveBlob } from '@/utils/files'
 import { formatTime } from '@/utils/format'
+import { useNarrow } from '@/utils/viewport'
 
 type Evidence = Schemas['EvidenceOut']
 
+const narrow = useNarrow()
 const props = defineProps<{ declaration: Declaration | null; editable: boolean }>()
 const visible = defineModel<boolean>({ required: true })
 const emit = defineEmits<{ changed: [] }>()
@@ -71,7 +73,7 @@ async function remove(item: Schemas['EvidenceOut']): Promise<void> {
       <el-table-column label="上传时间" width="150">
         <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column label="操作" width="120" :fixed="narrow ? false : 'right'">
         <template #default="{ row }">
           <el-button link type="primary" @click="download(row as Evidence)">下载</el-button>
           <el-button v-if="editable" link type="danger" @click="remove(row as Evidence)"

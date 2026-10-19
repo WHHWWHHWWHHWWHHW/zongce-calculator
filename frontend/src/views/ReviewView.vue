@@ -18,10 +18,12 @@ import {
 } from '@/utils/catalog'
 import { errorMessage } from '@/utils/errors'
 import { DECLARATION_STATUS, sameDecimal, scoreText } from '@/utils/format'
+import { useNarrow } from '@/utils/viewport'
 
 type Status = Schemas['DeclarationStatus']
 type Action = Schemas['ReviewAction']
 
+const narrow = useNarrow()
 const auth = useAuthStore()
 const years = useYearStore()
 const isAdmin = computed(() => auth.hasRole('college_admin'))
@@ -200,7 +202,7 @@ async function confirm(): Promise<void> {
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="210" fixed="right">
+      <el-table-column label="操作" width="210" :fixed="narrow ? false : 'right'">
         <template #default="{ row }">
           <el-button
             link

@@ -11,7 +11,9 @@ import { useYearStore } from '@/stores/year'
 import { type Catalog, type Declaration, itemName, optionName } from '@/utils/catalog'
 import { errorMessage } from '@/utils/errors'
 import { DECLARATION_STATUS, scoreText } from '@/utils/format'
+import { useNarrow } from '@/utils/viewport'
 
+const narrow = useNarrow()
 const auth = useAuthStore()
 const years = useYearStore()
 const catalog = ref<Catalog | null>(null)
@@ -132,7 +134,7 @@ async function act(d: Declaration, action: 'submit' | 'withdraw'): Promise<void>
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="200" :fixed="narrow ? false : 'right'">
         <template #default="{ row }">
           <el-button link type="primary" @click="showEvidence(row as Declaration)">
             材料({{ row.evidence.length }})
