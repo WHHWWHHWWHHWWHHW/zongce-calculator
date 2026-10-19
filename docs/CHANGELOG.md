@@ -6,6 +6,9 @@
 
 ### 新增
 
+- AI 辅助审核基础（M4）：`ai/pipeline`（`zongce_ai`）名单解析、等级规则匹配、与申报匹配和分流；`AI_PROVIDER` 默认 none；名单比对与快速通过批量确认接口和页面；`ai/eval` 评测脚本与合成评测集。
+- 回溯测试工具 `zongce backtest`（M3）；引擎可选规则字段 `final.intermediate_decimal_places`（缺省不舍入，v1 结果不变）。
+- `zongce seed-demo`：一条命令生成合成演示库。
 - 前端（M2，Element Plus）：学生申报、我的成绩、成绩预估、公示与异议、审核工作台（差异标红）、管理后台；Playwright 端到端测试与 375px 检查；演示截图与测试报告草稿。
 - 计分明细提供 4 位小数展示值（score_display / raw_display）。
 - 后端 `zongce_backend`（M1）：账号导入与强制改密、JWT + 三种角色、能力分申报与审核、证明材料上传、学院成绩表导入、核算与即时预估、班级排名与 Excel 导出、公示与异议、审计日志；Alembic 迁移；命令行 `zongce`。
@@ -19,6 +22,7 @@
 
 ### 安全
 
+- 登录失败限流：同一账号或同一 IP 在时间窗内失败次数过多时返回 429。
 - 排名导出防 Excel 公式注入；下载证明材料加 `X-Content-Type-Options: nosniff`；接口时间统一带 UTC 时区。
 
 ### 与 legacy 的已知差异
