@@ -45,7 +45,7 @@ jobs:
       - name: 安装 Python 依赖
         run: uv sync --frozen --python ${{ matrix.python }}
 
-      - name: ruff / mypy --strict / 引擎（覆盖率 100% + 对拍）/ 后端（覆盖率 ≥ 80%）
+      - name: ruff / mypy --strict / 引擎（覆盖率 100% + 对拍）/ AI 流水线（覆盖率 100%）/ 后端（覆盖率 ≥ 80%）
         run: bash scripts/check.sh
 
   frontend:

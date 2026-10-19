@@ -3,17 +3,18 @@ name = "zongce-platform"
 version = "0.0.0"
 description = "综测智能核算平台（uv 工作区根，仅用于统一开发依赖与工具配置）"
 requires-python = ">=3.11"
-dependencies = ["zongce-engine", "zongce-backend"]
+dependencies = ["zongce-engine", "zongce-backend", "zongce-ai"]
 
 [tool.uv]
 package = false
 
 [tool.uv.workspace]
-members = ["engine", "backend"]
+members = ["engine", "backend", "ai/pipeline"]
 
 [tool.uv.sources]
 zongce-engine = { workspace = true }
 zongce-backend = { workspace = true }
+zongce-ai = { workspace = true }
 
 [tool.ruff]
 line-length = 100
@@ -32,24 +33,31 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 "backend/migrations/versions/**" = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["zongce_engine", "zongce_backend", "support", "backend_helpers"]
+known-first-party = [
+    "zongce_engine", "zongce_backend", "zongce_ai", "support", "backend_helpers", "ai_helpers",
+]
 
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["engine/src", "engine/tests", "backend/src", "backend/tests", "tests", "scripts"]
-mypy_path = ["engine/src", "backend/src", "backend/tests", "tests"]
+files = [
+    "engine/src", "engine/tests", "backend/src", "backend/tests", "ai/pipeline/src",
+    "ai/pipeline/tests", "ai/eval", "tests", "scripts",
+]
+mypy_path = [
+    "engine/src", "backend/src", "backend/tests", "ai/pipeline/src", "ai/pipeline/tests", "tests",
+]
 explicit_package_bases = true
 
 [tool.pytest.ini_options]
-testpaths = ["engine/tests", "backend/tests", "tests"]
-pythonpath = ["tests"]
+testpaths = ["engine/tests", "backend/tests", "ai/pipeline/tests", "tests"]
+pythonpath = ["tests", "ai/pipeline/tests"]
 addopts = ["-ra", "--strict-markers", "--strict-config"]
 markers = ["parity: 与 legacy 页面对拍（需要 Node.js 与 tests/parity 下的 pnpm 依赖）"]
 
 [tool.coverage.run]
 branch = true
-source = ["zongce_engine", "zongce_backend"]
+source = ["zongce_engine", "zongce_backend", "zongce_ai"]
 
 [tool.coverage.report]
 show_missing = true
