@@ -11,7 +11,8 @@ test('375px 宽度下各页面可用', async ({ page }) => {
   await noHorizontalScroll(page)
   await uiLogin(page, ADMIN, ADMIN_PASSWORD)
   await expect(page).toHaveURL(/\/$/)
-  for (const path of ['/', '/preview', '/publications', '/review', '/admin', '/change-password']) {
+  const paths = ['/', '/preview', '/publications', '/review', '/review/match', '/admin']
+  for (const path of [...paths, '/change-password']) {
     await page.goto(path)
     await page.waitForLoadState('networkidle')
     await noHorizontalScroll(page)
