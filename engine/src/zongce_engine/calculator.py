@@ -1,5 +1,7 @@
 """计分：逐位复现 legacy ``calc()``（CLAUDE.md §4）。"""
 
+from collections.abc import Callable
+from dataclasses import replace
 from decimal import Decimal, localcontext
 
 from .models import ItemResult, MoralValue, PeerRatings, ScoreInput, ScoreResult
@@ -62,8 +64,20 @@ def _basic_item(rule: BasicRule, value: Decimal | None) -> ItemResult:
     return ItemResult(rule.id, rule.points if passed else ZERO, raw=value)
 
 
+def _rounder(places: int | None) -> Callable[[Decimal], Decimal]:
+    """中间值舍入（R-005 备选口径）；places 为 None 时原样返回（legacy 口径）。"""
+    if places is None:
+        return lambda value: value
+    return lambda value: round_js(value, places)
+
+
 def _calculate(score_input: ScoreInput, rules: RuleSet) -> ScoreResult:
-    gpa = _or_zero(score_input.gpa)
+    r = _rounder(rules.final.intermediate_decimal_places)
+
+    def fix(item: ItemResult) -> ItemResult:
+        return replace(item, score=r(item.score))
+
+    gpa = r(_or_zero(score_input.gpa))
     items = [ItemResult(rules.academic.id, gpa, raw=score_input.gpa)]
     moral_total: Decimal | None = None
     competence_total: Decimal | None = None
@@ -71,39 +85,50 @@ def _calculate(score_input: ScoreInput, rules: RuleSet) -> ScoreResult:
 
     if score_input.quality_mode == "direct":
         direct = rules.quality.direct
-        quality = _limited(direct.id, _or_zero(score_input.quality_direct), direct.min, direct.max)
+        quality = fix(
+            _limited(direct.id, _or_zero(score_input.quality_direct), direct.min, direct.max)
+        )
         items.append(quality)
     else:
         moral_items = [
-            _moral_item(rule, score_input.moral_value(rule.field), rules.moral.trim)
+            fix(_moral_item(rule, score_input.moral_value(rule.field), rules.moral.trim))
             for rule in rules.moral.items
         ]
-        moral = _limited(
-            rules.moral.id,
-            sum((i.score for i in moral_items), ZERO),
-            rules.moral.min,
-            rules.moral.max,
+        moral = fix(
+            _limited(
+                rules.moral.id,
+                sum((i.score for i in moral_items), ZERO),
+                rules.moral.min,
+                rules.moral.max,
+            )
         )
         competence_rule = rules.competence
         basic_items = [
-            _basic_item(rule, score_input.basic_value(rule.field)) for rule in competence_rule.basic
+            fix(_basic_item(rule, score_input.basic_value(rule.field)))
+            for rule in competence_rule.basic
         ]
         basic_total = sum((i.score for i in basic_items), ZERO)
         ability_rule = competence_rule.ability
-        ability = _limited(
-            ability_rule.id, _or_zero(score_input.ability), ability_rule.min, ability_rule.max
+        ability = fix(
+            _limited(
+                ability_rule.id, _or_zero(score_input.ability), ability_rule.min, ability_rule.max
+            )
         )
-        competence = _limited(
-            competence_rule.id,
-            basic_total + ability.score,
-            competence_rule.min,
-            competence_rule.max,
+        competence = fix(
+            _limited(
+                competence_rule.id,
+                basic_total + ability.score,
+                competence_rule.min,
+                competence_rule.max,
+            )
         )
-        quality = _limited(
-            rules.quality.id,
-            moral.score + competence.score,
-            rules.quality.min,
-            rules.quality.max,
+        quality = fix(
+            _limited(
+                rules.quality.id,
+                moral.score + competence.score,
+                rules.quality.min,
+                rules.quality.max,
+            )
         )
         moral_total, competence_total = moral.score, competence.score
         items += [*moral_items, moral, *basic_items, ability, competence, quality]

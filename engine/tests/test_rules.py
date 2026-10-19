@@ -32,6 +32,7 @@ def test_v1_values(rules: RuleSet) -> None:
     assert rules.final.quality_weight == D("0.25")
     assert rules.final.quality_divisor == D("20")
     assert rules.final.decimal_places == 4
+    assert rules.final.intermediate_decimal_places is None  # v1：中间值不舍入（legacy）
     assert (rules.quality.min, rules.quality.max) == (D("0"), D("100"))
     assert (rules.quality.direct.min, rules.quality.direct.max) == (D("0"), D("100"))
     assert (rules.moral.min, rules.moral.max) == (D("0"), D("30"))
@@ -86,6 +87,8 @@ def _mutate(data: dict[str, Any], path: tuple[str | int, ...], value: object) ->
         (("final", "decimal_places"), "4", "final.decimal_places"),
         (("final", "decimal_places"), True, "final.decimal_places"),
         (("final", "decimal_places"), 11, "final.decimal_places"),
+        (("final", "intermediate_decimal_places"), "4", "final.intermediate_decimal_places"),
+        (("final", "intermediate_decimal_places"), 11, "final.intermediate_decimal_places"),
         (("final", "rounding"), "half_even", "final.rounding"),
         (("final", "quality_divisor"), "0", "final.quality_divisor"),
         (("final", "id"), "Final!", "final.id"),
@@ -121,3 +124,15 @@ def test_top_level_must_be_object() -> None:
 
 def test_rule_error_is_value_error() -> None:
     assert issubclass(RuleError, ValueError)
+
+
+def test_intermediate_places_optional(
+    rules_data: dict[str, Any], schema_data: dict[str, Any]
+) -> None:
+    # R-005 的备选口径：中间值也舍入到 4 位。可选字段，缺省（null）即 legacy 口径
+    data = _mutate(rules_data, ("final", "intermediate_decimal_places"), 4)
+    assert RuleSet.from_dict(data).final.intermediate_decimal_places == 4
+    jsonschema.validate(data, schema_data)
+    data = _mutate(rules_data, ("final", "intermediate_decimal_places"), None)
+    assert RuleSet.from_dict(data).final.intermediate_decimal_places is None
+    jsonschema.validate(data, schema_data)
