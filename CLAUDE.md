@@ -27,9 +27,17 @@
 
 ---
 
-## 2. 仓库现状（截至 2026-10-12）
+## 2. 仓库现状（截至 2026-10-20）
 
-`main` 上的文件如下；M0 的产出（`rules/`、`engine/`、`tests/`、`docs/`、`.github/`）在分支 `m0/rule-engine` 上，见 `docs/PROGRESS.md`。
+`main` 上只有下表中的 legacy 文件。平台代码在三条依次堆叠的分支上（尚未合并到 `main`），详见 `docs/PROGRESS.md`：
+
+| 分支 | 内容 |
+|---|---|
+| `m0/rule-engine` | 规则文件 `rules/`、计分引擎 `engine/`、黄金用例与 legacy 对拍 `tests/`、CI |
+| `m1/backend` | 在 M0 之上：后端 `backend/`、能力分申报目录、命令行 `zongce`、本机运行文档 |
+| `m2/frontend` | 在 M1 之上：前端 `frontend/`（Element Plus）、Playwright 端到端测试、中期检查截图与测试报告 |
+
+`main` 上的文件：
 
 | 文件 | 说明 |
 |---|---|
@@ -120,7 +128,7 @@
 | 能力分 | `ability` | clamp(v, 0, 50)，自主申报经审核后的累计分 |
 
 - 基础分满分 20。
-- 能力分的**逐项加分细则**（评优、社会工作、社会实践、创新创业、文体活动等）legacy 中没有实现，**有待用户提供细则原文**。在此之前只支持录入能力分总分。
+- 能力分的逐项加分依据细则附件 2，申报目录见 `rules/ability-catalog-xxgc-2020.json`（随规则版本导入）。平台中能力分 = 已通过的申报按封顶分组汇总后的合计，再由引擎按 0–50 封顶；规则 v1 的计分公式不变。
 
 ### 4.3 已知陷阱（必须在代码和测试里显式处理）
 
@@ -159,7 +167,7 @@
 
 | 层 | 选型 |
 |---|---|
-| 前端 | Vue 3 + Vite + TypeScript（strict），组件库在 Element Plus / Naive UI 中二选一（M2 开始时由用户确认），适配手机浏览器 |
+| 前端 | Vue 3 + Vite + TypeScript（strict），组件库 **Element Plus**（2026-10-19 选定），适配手机浏览器 |
 | 后端 | Python 3.11+、FastAPI、SQLAlchemy 2.x、Alembic、Pydantic v2 |
 | 数据库 | MySQL 8（开发和测试可以用 SQLite） |
 | 文件存储 | 先用本地磁盘，后期迁移到 MinIO（S3 兼容），通过接口抽象 |
@@ -184,10 +192,12 @@
 ├── test.xlsx
 ├── rules/
 │   ├── schema.json            # 规则文件的 JSON Schema
-│   └── ujn-v1.json            # 规则 v1（对应第 4 节），每条注明出处（source 字段）
+│   ├── ujn-v1.json            # 规则 v1（对应第 4 节），每条注明出处（source 字段）
+│   └── ability-catalog-*.json # 能力分申报目录（细则附件 2），随规则版本导入
 ├── engine/                    # 纯计分引擎（Python 包 zongce_engine）
 ├── backend/                   # FastAPI 应用（routers / services / models / schemas）
-├── frontend/                  # Vue 3 应用
+│   └── migrations/            # Alembic 迁移
+├── frontend/                  # Vue 3 应用（e2e/ 为 Playwright 端到端测试）
 ├── ai/
 │   ├── prompts/               # 版本化的提示词（*.md）
 │   ├── pipeline/              # 解析 → OCR → 抽取 → 校验 → 匹配
@@ -195,11 +205,14 @@
 ├── tests/
 │   ├── golden/cases.json
 │   └── parity/                # legacy 对拍（Node + jsdom）
-├── scripts/                   # 合成数据生成、备份等脚本
+├── scripts/                   # check.sh（与 CI 相同的一键检查）、合成数据生成、备份等脚本
 ├── deploy/                    # docker-compose.yml、nginx 配置、.env.example
 └── docs/
     ├── PROGRESS.md            # 进度日志（AI 每次会话结束时更新）
     ├── CHANGELOG.md
+    ├── 本机运行.md             # 本机启动步骤
+    ├── claude-md-proposals.md # AI 对本文件的修改建议（待负责人审阅）
+    ├── api/openapi.json       # 接口文档，前端类型的唯一来源
     ├── adr/                   # 架构决策记录（ADR）
     ├── rules-issues.md        # 规则疑点清单
     └── reports/               # 回溯测试、AI 评测报告（中期检查和结题素材）
@@ -267,6 +280,7 @@
 ### 9.2 开发过程
 
 - 每个任务开一个分支，命名如 `m0/rule-engine`、`m1/auth`、`fix/<简述>`。
+- 上一个里程碑的 PR 尚未合并时，新分支基于上一分支创建（堆叠 PR），PR 的 base 指向上一分支；上一个合并后再改到 `main`。
 - 提交信息遵循 Conventional Commits，例如 `feat(engine): ...`、`fix(api): ...`、`test(parity): ...`、`docs: ...`。描述可以用中文。
 - 小步提交，每个提交都保证测试能通过。
 - 新增依赖之前，先在 PR 描述里说明必要性和替代方案；能用标准库解决的就不引入新依赖。
@@ -274,7 +288,7 @@
 
 ### 9.3 会话结束
 
-1. 运行全部测试和 lint，记录命令和结果。
+1. 运行全部测试和 lint（`bash scripts/check.sh`，与 CI 相同；前端另跑 `pnpm test`、`pnpm test:e2e`），记录命令和结果。
 2. 更新 `docs/PROGRESS.md`，在顶部追加一条：日期、完成了什么、下一步、阻塞项。
 3. 按第 12 节的格式向用户汇报。
 4. 推送分支后，提交 PR 草稿，由用户审核合并。**AI 不得自行合并到 `main`。**
@@ -294,7 +308,7 @@
 ### TypeScript / Vue
 
 - `strict: true`，使用 `<script setup lang="ts">`，统一 ESLint + Prettier。
-- 不在前端实现任何计分逻辑；API 类型从 OpenAPI 生成，或者集中手写在一处，不得到处散落。
+- 不在前端实现任何计分逻辑；API 类型一律从 `docs/api/openapi.json` 生成（`pnpm gen:api`）。后端改了接口必须运行 `uv run zongce export-openapi docs/api/openapi.json`，测试会检查两者一致。
 
 ### 命名
 
@@ -344,15 +358,15 @@
 6. 测试失败且无法定位原因（同一问题尝试 2 次仍未解决时停下）。
 7. 发现安全或隐私隐患。
 
-**待确认事项（截至 2026-10-12，已定事项保留记录）**：
+**待确认事项（截至 2026-10-20，已定事项保留记录）**：
 
 1. ~~能力分逐项加分细则原文~~ **已提供（2026-10-12）**：济大信息院字〔2020〕23 号《实施办法（试行）》及附件，现行有效。规则 v1 仍逐位复现 legacy，细则与 legacy 的差异（`docs/rules-issues.md` R-001～R-005）纳入哪个规则版本待定。
 2. 学院成绩表单的脱敏样本，Excel 和图片各 1–2 份（阻塞 M4 的真实评测）。
 3. 部署环境：**已定（2026-10-12）：先在本机运行，暂不购买云服务器**；学校服务器 / 云服务器、域名和 ICP 备案以后再定（备案耗时较长，上线前需提前启动）。
 4. 大模型提供方与 API key，或者改用本地模型。
 5. 登录方式：默认采用管理员导入账号；学校统一认证大概率无法接入。
-6. API 层的输入范围校验（GPA 是否限制在 0–5，体测、宿舍分是否限制在 0–100）。
-7. 前端组件库的选择（Element Plus 或 Naive UI）。
+6. ~~API 层的输入范围校验~~ **已定（2026-10-19）**：不加会改变计分结果的范围校验；同分并列排名（1、2、2、4）；审核员不能审核自己的申报（ADR 0003 第 6–8 条）。
+7. ~~前端组件库~~ **已定（2026-10-19）**：Element Plus（ADR 0004）。
 
 ---
 
