@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, StringConstraints
 
-from ..models import AppealStatus
+from ..models import Appeal, AppealStatus
 from .common import ApiModel, Reason, UtcDatetime
 from .scores import RankRow
 
@@ -42,9 +42,29 @@ class AppealOut(ApiModel):
     id: int
     publication_id: int
     student_id: int
+    student_username: str
+    student_name: str
+    class_name: str | None
     content: str
     status: AppealStatus
     response: str | None
     handled_by: int | None
     handled_at: UtcDatetime | None
     created_at: UtcDatetime
+
+    @classmethod
+    def of(cls, appeal: Appeal) -> "AppealOut":
+        return cls(
+            id=appeal.id,
+            publication_id=appeal.publication_id,
+            student_id=appeal.student_id,
+            student_username=appeal.student.username,
+            student_name=appeal.student.name,
+            class_name=appeal.student.class_name,
+            content=appeal.content,
+            status=appeal.status,
+            response=appeal.response,
+            handled_by=appeal.handled_by,
+            handled_at=appeal.handled_at,
+            created_at=appeal.created_at,
+        )

@@ -55,16 +55,16 @@ def close(publication_id: int, admin: AdminUser, db: DbSession) -> PublicationOu
 def create_appeal(
     publication_id: int, body: AppealCreate, user: CurrentUser, db: DbSession
 ) -> AppealOut:
-    return AppealOut.model_validate(service.create_appeal(db, user, publication_id, body.content))
+    return AppealOut.of(service.create_appeal(db, user, publication_id, body.content))
 
 
 @router.get("/appeals", response_model=list[AppealOut], summary="异议列表（学生只看自己的）")
 def list_appeals(
     user: CurrentUser, db: DbSession, publication_id: int | None = None
 ) -> list[AppealOut]:
-    return [AppealOut.model_validate(a) for a in service.list_appeals(db, user, publication_id)]
+    return [AppealOut.of(a) for a in service.list_appeals(db, user, publication_id)]
 
 
 @router.post("/appeals/{appeal_id}/resolve", response_model=AppealOut, summary="处理异议")
 def resolve(appeal_id: int, body: AppealResolve, admin: AdminUser, db: DbSession) -> AppealOut:
-    return AppealOut.model_validate(service.resolve_appeal(db, admin, appeal_id, body))
+    return AppealOut.of(service.resolve_appeal(db, admin, appeal_id, body))

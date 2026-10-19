@@ -2339,6 +2339,25 @@
             "type": "integer",
             "title": "Student Id"
           },
+          "student_username": {
+            "type": "string",
+            "title": "Student Username"
+          },
+          "student_name": {
+            "type": "string",
+            "title": "Student Name"
+          },
+          "class_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Class Name"
+          },
           "content": {
             "type": "string",
             "title": "Content"
@@ -2391,6 +2410,9 @@
           "id",
           "publication_id",
           "student_id",
+          "student_username",
+          "student_name",
+          "class_name",
           "content",
           "status",
           "response",

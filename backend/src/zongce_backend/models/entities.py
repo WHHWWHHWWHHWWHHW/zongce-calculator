@@ -237,6 +237,8 @@ class Appeal(TimestampMixin, Base):
     handled_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     handled_at: Mapped[datetime | None] = mapped_column(DateTime())
 
+    student: Mapped[User] = relationship(foreign_keys=[student_id], lazy="joined")
+
 
 class AuditLog(Base):
     """审计日志：谁、何时、改了什么、改前值、改后值、理由（CLAUDE.md §8 M1）。"""
