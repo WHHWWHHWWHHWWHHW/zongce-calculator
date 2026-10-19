@@ -10,7 +10,7 @@ export default defineConfig({
   },
   server: {
     // 本机开发：前端 5173，后端 `uv run zongce serve`（8000）
-    proxy: { '/api': 'http://127.0.0.1:8000' },
+    proxy: { '/api': process.env.VITE_PROXY_TARGET ?? 'http://127.0.0.1:8000' },
   },
   test: {
     environment: 'jsdom',
@@ -18,6 +18,7 @@ export default defineConfig({
     env: { VITE_API_BASE: 'http://api.test' },
     globals: true,
     include: ['tests/unit/**/*.spec.ts'],
+    exclude: ['e2e/**', 'node_modules/**'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],

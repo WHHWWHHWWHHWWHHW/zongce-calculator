@@ -44,3 +44,7 @@ Thumbs.db
 
 # pnpm 包缓存
 .pnpm-store/
+
+# Playwright
+playwright-report/
+test-results/
