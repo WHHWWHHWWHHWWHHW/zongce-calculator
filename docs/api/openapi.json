@@ -2223,6 +2223,148 @@
         }
       }
     },
+    "/api/v1/ai/status": {
+      "get": {
+        "tags": [
+          "AI 辅助审核"
+        ],
+        "summary": "AI 功能状态（AI_PROVIDER）",
+        "operationId": "ai_status_api_v1_ai_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatus"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/years/{year_id}/ai/award-match": {
+      "post": {
+        "tags": [
+          "AI 辅助审核"
+        ],
+        "summary": "上传学院名单，与待审核申报比对（只给建议，不改分）",
+        "description": "名单为 .xlsx / .csv，表头需含“学号”，等级写在“级别”“等级”“奖项”“名次”等列。context 是对整张表都成立的说明（如“一类赛事”）。AI_PROVIDER=none 时上传图片或 PDF 会返回 400。班级审核员只看到本班学生。",
+        "operationId": "award_match_api_v1_years__year_id__ai_award_match_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_award_match_api_v1_years__year_id__ai_award_match_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwardMatchResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/years/{year_id}/ai/fast-track": {
+      "post": {
+        "tags": [
+          "AI 辅助审核"
+        ],
+        "summary": "批量确认“可快速通过”的申报",
+        "description": "逐条按“通过”审核（建议分），写审核记录与审计日志；单条失败不影响其他条目。",
+        "operationId": "confirm_fast_track_api_v1_years__year_id__ai_fast_track_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FastTrackConfirm"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FastTrackResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/health": {
       "get": {
         "tags": [
@@ -2310,6 +2452,37 @@
           "items"
         ],
         "title": "AbilityCatalog"
+      },
+      "AiStatus": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider",
+            "description": "none | local | remote"
+          },
+          "table_matching": {
+            "type": "boolean",
+            "title": "Table Matching",
+            "description": "Excel / CSV 名单比对，始终可用"
+          },
+          "image_recognition": {
+            "type": "boolean",
+            "title": "Image Recognition",
+            "description": "图片、扫描件识别（需要 OCR 与大模型）"
+          },
+          "fast_track_threshold": {
+            "type": "string",
+            "title": "Fast Track Threshold"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "table_matching",
+          "image_recognition",
+          "fast_track_threshold"
+        ],
+        "title": "AiStatus"
       },
       "AppealCreate": {
         "properties": {
@@ -2549,6 +2722,108 @@
           "created_at"
         ],
         "title": "AuditLogOut"
+      },
+      "AwardMatchResult": {
+        "properties": {
+          "catalog_code": {
+            "type": "string",
+            "title": "Catalog Code"
+          },
+          "catalog_name": {
+            "type": "string",
+            "title": "Catalog Name"
+          },
+          "columns": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Columns",
+            "description": "识别的表头 → 用途"
+          },
+          "ignored_columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ignored Columns"
+          },
+          "skipped_rows": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Skipped Rows",
+            "description": "学号为空而跳过的行号"
+          },
+          "out_of_scope_rows": {
+            "type": "integer",
+            "title": "Out Of Scope Rows",
+            "description": "不属于本班、因而不显示的行数（班级审核员）"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/MatchSuggestionOut"
+            },
+            "type": "array",
+            "title": "Suggestions"
+          },
+          "unmatched_declaration_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Unmatched Declaration Ids",
+            "description": "已提交但名单中没有的申报，照常人工审核"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts",
+            "description": "按分流统计：fast_track / manual / info"
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalog_code",
+          "catalog_name",
+          "columns",
+          "ignored_columns",
+          "skipped_rows",
+          "out_of_scope_rows",
+          "suggestions",
+          "unmatched_declaration_ids",
+          "counts"
+        ],
+        "title": "AwardMatchResult"
+      },
+      "Body_award_match_api_v1_years__year_id__ai_award_match_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "catalog_code": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Catalog Code"
+          },
+          "context": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Context",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "catalog_code"
+        ],
+        "title": "Body_award_match_api_v1_years__year_id__ai_award_match_post"
       },
       "Body_import_college_data_api_v1_years__year_id__college_data_import_post": {
         "properties": {
@@ -3498,6 +3773,76 @@
         ],
         "title": "EvidenceOut"
       },
+      "FastTrackConfirm": {
+        "properties": {
+          "declaration_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Declaration Ids"
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Source",
+            "description": "名单来源，写入审核理由，如“2025 年学科竞赛获奖名单.xlsx”"
+          }
+        },
+        "type": "object",
+        "required": [
+          "declaration_ids",
+          "source"
+        ],
+        "title": "FastTrackConfirm"
+      },
+      "FastTrackItem": {
+        "properties": {
+          "declaration_id": {
+            "type": "integer",
+            "title": "Declaration Id"
+          },
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "declaration_id",
+          "ok",
+          "message"
+        ],
+        "title": "FastTrackItem"
+      },
+      "FastTrackResult": {
+        "properties": {
+          "approved": {
+            "type": "integer",
+            "title": "Approved"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FastTrackItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "approved",
+          "items"
+        ],
+        "title": "FastTrackResult"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -3612,6 +3957,146 @@
           "password"
         ],
         "title": "LoginRequest"
+      },
+      "MatchStatus": {
+        "type": "string",
+        "enum": [
+          "consistent",
+          "option_mismatch",
+          "uncertain",
+          "not_declared",
+          "unknown_student",
+          "name_mismatch",
+          "duplicate"
+        ],
+        "title": "MatchStatus"
+      },
+      "MatchSuggestionOut": {
+        "properties": {
+          "row": {
+            "type": "integer",
+            "title": "Row",
+            "description": "名单中的行号（表头为第 1 行）"
+          },
+          "student_username": {
+            "type": "string",
+            "title": "Student Username"
+          },
+          "student_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student Name",
+            "description": "账号中的姓名；学号不存在时为空"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MatchStatus"
+          },
+          "route": {
+            "$ref": "#/components/schemas/Route",
+            "description": "fast_track：可快速通过（仍需确认）；manual：人工复核；info：仅提示"
+          },
+          "confidence": {
+            "type": "string",
+            "title": "Confidence"
+          },
+          "declaration_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declaration Id"
+          },
+          "declaration_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declaration Title"
+          },
+          "form_option": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Form Option",
+            "description": "名单上的等级对应的选项编码"
+          },
+          "form_option_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Form Option Name"
+          },
+          "declared_option": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared Option"
+          },
+          "declared_option_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared Option Name"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row",
+          "student_username",
+          "student_name",
+          "status",
+          "route",
+          "confidence",
+          "declaration_id",
+          "declaration_title",
+          "form_option",
+          "form_option_name",
+          "declared_option",
+          "declared_option_name",
+          "reasons"
+        ],
+        "title": "MatchSuggestionOut"
       },
       "Message": {
         "properties": {
@@ -4148,6 +4633,15 @@
           "college_admin"
         ],
         "title": "Role"
+      },
+      "Route": {
+        "type": "string",
+        "enum": [
+          "fast_track",
+          "manual",
+          "info"
+        ],
+        "title": "Route"
       },
       "RowError": {
         "properties": {

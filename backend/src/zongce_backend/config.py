@@ -1,9 +1,12 @@
 """运行配置：从环境变量（前缀 ZONGCE_）或当前目录的 .env 读取。示例见 deploy/.env.example。"""
 
+from decimal import Decimal
 from pathlib import Path
 
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from zongce_ai import AiProvider
 
 
 class Settings(BaseSettings):
@@ -26,3 +29,10 @@ class Settings(BaseSettings):
     )
     login_window_minutes: int = Field(default=15, ge=1, le=24 * 60)
     cors_origins: list[str] = []
+    ai_provider: AiProvider = Field(
+        default=AiProvider.NONE,
+        description="CLAUDE.md 中的 AI_PROVIDER：none（默认，只解析表格）| local | remote",
+    )
+    ai_fast_track_threshold: Decimal = Field(
+        default=Decimal("0.9"), ge=0, le=1, description="置信度不低于此值且与申报一致才建议快速通过"
+    )

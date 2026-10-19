@@ -636,6 +636,63 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/v1/ai/status': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** AI 功能状态（AI_PROVIDER） */
+    get: operations['ai_status_api_v1_ai_status_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/years/{year_id}/ai/award-match': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * 上传学院名单，与待审核申报比对（只给建议，不改分）
+     * @description 名单为 .xlsx / .csv，表头需含“学号”，等级写在“级别”“等级”“奖项”“名次”等列。context 是对整张表都成立的说明（如“一类赛事”）。AI_PROVIDER=none 时上传图片或 PDF 会返回 400。班级审核员只看到本班学生。
+     */
+    post: operations['award_match_api_v1_years__year_id__ai_award_match_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/years/{year_id}/ai/fast-track': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * 批量确认“可快速通过”的申报
+     * @description 逐条按“通过”审核（建议分），写审核记录与审计日志；单条失败不影响其他条目。
+     */
+    post: operations['confirm_fast_track_api_v1_years__year_id__ai_fast_track_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/health': {
     parameters: {
       query?: never
@@ -679,6 +736,26 @@ export interface components {
       caps: components['schemas']['CapGroup'][]
       /** Items */
       items: components['schemas']['CatalogItem'][]
+    }
+    /** AiStatus */
+    AiStatus: {
+      /**
+       * Provider
+       * @description none | local | remote
+       */
+      provider: string
+      /**
+       * Table Matching
+       * @description Excel / CSV 名单比对，始终可用
+       */
+      table_matching: boolean
+      /**
+       * Image Recognition
+       * @description 图片、扫描件识别（需要 OCR 与大模型）
+       */
+      image_recognition: boolean
+      /** Fast Track Threshold */
+      fast_track_threshold: string
     }
     /** AppealCreate */
     AppealCreate: {
@@ -754,6 +831,58 @@ export interface components {
        * Format: date-time
        */
       created_at: string
+    }
+    /** AwardMatchResult */
+    AwardMatchResult: {
+      /** Catalog Code */
+      catalog_code: string
+      /** Catalog Name */
+      catalog_name: string
+      /**
+       * Columns
+       * @description 识别的表头 → 用途
+       */
+      columns: {
+        [key: string]: string
+      }
+      /** Ignored Columns */
+      ignored_columns: string[]
+      /**
+       * Skipped Rows
+       * @description 学号为空而跳过的行号
+       */
+      skipped_rows: number[]
+      /**
+       * Out Of Scope Rows
+       * @description 不属于本班、因而不显示的行数（班级审核员）
+       */
+      out_of_scope_rows: number
+      /** Suggestions */
+      suggestions: components['schemas']['MatchSuggestionOut'][]
+      /**
+       * Unmatched Declaration Ids
+       * @description 已提交但名单中没有的申报，照常人工审核
+       */
+      unmatched_declaration_ids: number[]
+      /**
+       * Counts
+       * @description 按分流统计：fast_track / manual / info
+       */
+      counts: {
+        [key: string]: number
+      }
+    }
+    /** Body_award_match_api_v1_years__year_id__ai_award_match_post */
+    Body_award_match_api_v1_years__year_id__ai_award_match_post: {
+      /** File */
+      file: string
+      /** Catalog Code */
+      catalog_code: string
+      /**
+       * Context
+       * @default
+       */
+      context: string
     }
     /** Body_import_college_data_api_v1_years__year_id__college_data_import_post */
     Body_import_college_data_api_v1_years__year_id__college_data_import_post: {
@@ -1028,6 +1157,32 @@ export interface components {
        */
       created_at: string
     }
+    /** FastTrackConfirm */
+    FastTrackConfirm: {
+      /** Declaration Ids */
+      declaration_ids: number[]
+      /**
+       * Source
+       * @description 名单来源，写入审核理由，如“2025 年学科竞赛获奖名单.xlsx”
+       */
+      source: string
+    }
+    /** FastTrackItem */
+    FastTrackItem: {
+      /** Declaration Id */
+      declaration_id: number
+      /** Ok */
+      ok: boolean
+      /** Message */
+      message: string
+    }
+    /** FastTrackResult */
+    FastTrackResult: {
+      /** Approved */
+      approved: number
+      /** Items */
+      items: components['schemas']['FastTrackItem'][]
+    }
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -1063,6 +1218,55 @@ export interface components {
       username: string
       /** Password */
       password: string
+    }
+    /**
+     * MatchStatus
+     * @enum {string}
+     */
+    MatchStatus:
+      | 'consistent'
+      | 'option_mismatch'
+      | 'uncertain'
+      | 'not_declared'
+      | 'unknown_student'
+      | 'name_mismatch'
+      | 'duplicate'
+    /** MatchSuggestionOut */
+    MatchSuggestionOut: {
+      /**
+       * Row
+       * @description 名单中的行号（表头为第 1 行）
+       */
+      row: number
+      /** Student Username */
+      student_username: string
+      /**
+       * Student Name
+       * @description 账号中的姓名；学号不存在时为空
+       */
+      student_name: string | null
+      status: components['schemas']['MatchStatus']
+      /** @description fast_track：可快速通过（仍需确认）；manual：人工复核；info：仅提示 */
+      route: components['schemas']['Route']
+      /** Confidence */
+      confidence: string
+      /** Declaration Id */
+      declaration_id: number | null
+      /** Declaration Title */
+      declaration_title: string | null
+      /**
+       * Form Option
+       * @description 名单上的等级对应的选项编码
+       */
+      form_option: string | null
+      /** Form Option Name */
+      form_option_name: string | null
+      /** Declared Option */
+      declared_option: string | null
+      /** Declared Option Name */
+      declared_option_name: string | null
+      /** Reasons */
+      reasons: string[]
     }
     /** Message */
     Message: {
@@ -1221,6 +1425,11 @@ export interface components {
      * @enum {string}
      */
     Role: 'student' | 'class_reviewer' | 'college_admin'
+    /**
+     * Route
+     * @enum {string}
+     */
+    Route: 'fast_track' | 'manual' | 'info'
     /** RowError */
     RowError: {
       /** Row */
@@ -2735,6 +2944,96 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['AuditLogOut'][]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  ai_status_api_v1_ai_status_get: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AiStatus']
+        }
+      }
+    }
+  }
+  award_match_api_v1_years__year_id__ai_award_match_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        year_id: number
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'multipart/form-data': components['schemas']['Body_award_match_api_v1_years__year_id__ai_award_match_post']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AwardMatchResult']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  confirm_fast_track_api_v1_years__year_id__ai_fast_track_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        year_id: number
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FastTrackConfirm']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['FastTrackResult']
         }
       }
       /** @description Validation Error */
