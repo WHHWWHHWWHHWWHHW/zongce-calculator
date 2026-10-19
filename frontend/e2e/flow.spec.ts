@@ -2,13 +2,13 @@
  * 端到端主流程（CLAUDE.md §8 M2）：学生申报 → 审核员通过 → 管理员核算并导出。
  * 只使用合成数据（学号以 TEST 开头）。
  */
+import { readFileSync } from 'node:fs'
+
 import { expect, test } from '@playwright/test'
 
-import { API } from './constants'
+import { API, REVIEWER_PASSWORD, STUDENT_PASSWORD } from './constants'
 import { apiLogin, csv, firstLogin, pick, uiLogin } from './helpers'
 
-const STUDENT_PASSWORD = 'Student12345'
-const REVIEWER_PASSWORD = 'Reviewer12345'
 const passwords: Record<string, string> = {}
 
 test.describe.configure({ mode: 'serial' })
@@ -100,11 +100,18 @@ test('管理员核算并导出 Excel；学生看到综测成绩', async ({ page,
   await expect(page.locator('.el-message--success')).toContainText('已核算 2 人')
   await expect(page.locator('.el-table__row', { hasText: 'TEST0002' })).toContainText('3.3127')
 
-  const downloading = page.waitForEvent('download')
-  await page.getByTestId('export').click()
-  const download = await downloading
-  expect(download.suggestedFilename()).toMatch(/综测排名\.xlsx$/)
-  expect((await download.createReadStream()) !== null).toBeTruthy()
+  const [response, download] = await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/rankings/export')),
+    page.waitForEvent('download'),
+    page.getByTestId('export').click(),
+  ])
+  expect(decodeURIComponent(response.headers()['content-disposition'] ?? '')).toContain(
+    '2025-2026-综测排名.xlsx',
+  )
+  const bytes = readFileSync((await download.path())!)
+  expect(bytes.subarray(0, 2).toString('latin1')).toBe('PK') // xlsx 是 ZIP 格式
+  // 用 PW_CHROMIUM 指定的非配套 Chromium 不回报文件名（总是 “download”），只在配套浏览器上检查
+  if (!process.env.PW_CHROMIUM) expect(download.suggestedFilename()).toMatch(/综测排名\.xlsx$/)
 
   const student = await browser.newPage()
   await uiLogin(student, 'TEST0002', STUDENT_PASSWORD)

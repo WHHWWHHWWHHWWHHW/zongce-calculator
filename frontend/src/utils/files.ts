@@ -21,7 +21,8 @@ export function saveBlob(blob: Blob, filename: string): void {
   document.body.appendChild(link)
   link.click()
   link.remove()
-  URL.revokeObjectURL(url)
+  // 下载在点击后异步开始，稍后再释放临时链接更稳妥
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }
 
 /** openapi-fetch 的 multipart 上传参数（后端字段名为 file）。 */

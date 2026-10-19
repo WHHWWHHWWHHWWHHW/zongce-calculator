@@ -19,6 +19,13 @@ export async function uiLogin(page: Page, username: string, password: string): P
   await page.getByTestId('login-username').fill(username)
   await page.getByTestId('login-password').fill(password)
   await page.getByTestId('login-submit').click()
+  await expect(page).not.toHaveURL(/\/login/) // 等登录完成、离开登录页
+}
+
+/** 换一个账号登录：先清除当前页面的登录态（令牌存在 sessionStorage）。 */
+export async function switchUser(page: Page, username: string, password: string): Promise<void> {
+  if (page.url().startsWith('http')) await page.evaluate(() => sessionStorage.clear())
+  await uiLogin(page, username, password)
 }
 
 /** 首次登录：用初始密码登录 → 强制改密 → 用新密码重新登录。 */
