@@ -40,6 +40,15 @@ class ConflictError(AppError):
     code = "conflict"
 
 
+class TooManyRequestsError(AppError):
+    status_code = 429
+    code = "too_many_requests"
+
+    def __init__(self, message: str, *, retry_after: int) -> None:
+        super().__init__(message, details={"retry_after": retry_after})
+        self.retry_after = retry_after
+
+
 class PasswordChangeRequiredError(AppError):
     status_code = 403
     code = "password_change_required"
@@ -51,7 +60,11 @@ def _body(code: str, message: str, details: Any = None) -> dict[str, Any]:
 
 async def _app_error(_: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, AppError)
-    headers = {"WWW-Authenticate": "Bearer"} if isinstance(exc, UnauthorizedError) else None
+    headers: dict[str, str] | None = None
+    if isinstance(exc, UnauthorizedError):
+        headers = {"WWW-Authenticate": "Bearer"}
+    elif isinstance(exc, TooManyRequestsError):
+        headers = {"Retry-After": str(exc.retry_after)}
     return JSONResponse(
         _body(exc.code, exc.message, exc.details), status_code=exc.status_code, headers=headers
     )

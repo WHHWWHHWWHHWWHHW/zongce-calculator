@@ -13,7 +13,10 @@ export interface paths {
     }
     get?: never
     put?: never
-    /** 登录（学号/账号 + 密码） */
+    /**
+     * 登录（学号/账号 + 密码）
+     * @description 同一账号或同一 IP 在时间窗内登录失败次数过多时返回 429（响应头 Retry-After 给出等待秒数）。
+     */
     post: operations['login_api_v1_auth_login_post']
     delete?: never
     options?: never

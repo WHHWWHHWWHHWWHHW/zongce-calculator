@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import Settings
 from .db import make_engine, make_session_factory
 from .errors import install_error_handlers
+from .ratelimit import LoginLimiter
 from .routers import audit, auth, declarations, publications, scores, users, years
 from .storage import LocalFileStorage
 
@@ -29,6 +30,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.session_factory = make_session_factory(engine)
     app.state.storage = LocalFileStorage(settings.upload_dir)
+    app.state.login_limiter = LoginLimiter(
+        max_per_user=settings.login_max_failures,
+        max_per_ip=settings.login_ip_max_failures,
+        window_seconds=settings.login_window_minutes * 60,
+    )
     install_error_handlers(app)
     if settings.cors_origins:
         app.add_middleware(

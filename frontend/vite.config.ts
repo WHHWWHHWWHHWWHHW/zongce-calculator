@@ -9,8 +9,11 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: {
-    // 本机开发：前端 5173，后端 `uv run zongce serve`（8000）
-    proxy: { '/api': process.env.VITE_PROXY_TARGET ?? 'http://127.0.0.1:8000' },
+    // 本机开发：前端 5173，后端 `uv run zongce serve`（8000）。
+    // xfwd：带上 X-Forwarded-For，后端（uvicorn 默认信任 127.0.0.1 的代理头）按真实客户端 IP 做登录限流
+    proxy: {
+      '/api': { target: process.env.VITE_PROXY_TARGET ?? 'http://127.0.0.1:8000', xfwd: true },
+    },
   },
   test: {
     environment: 'jsdom',

@@ -1,6 +1,6 @@
 """登录与账号自助。"""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from ..deps import AppSettings, AuthenticatedUser, DbSession
 from ..schemas.common import Message
@@ -10,9 +10,22 @@ from ..services import users as service
 router = APIRouter(prefix="/auth", tags=["认证"])
 
 
-@router.post("/login", response_model=TokenResponse, summary="登录（学号/账号 + 密码）")
-def login(body: LoginRequest, db: DbSession, settings: AppSettings) -> TokenResponse:
-    user, token = service.login(db, body.username, body.password, settings)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="登录（学号/账号 + 密码）",
+    description=(
+        "同一账号或同一 IP 在时间窗内登录失败次数过多时返回 429"
+        "（响应头 Retry-After 给出等待秒数）。"
+    ),
+)
+def login(
+    body: LoginRequest, request: Request, db: DbSession, settings: AppSettings
+) -> TokenResponse:
+    client_ip = request.client.host if request.client else "unknown"
+    user, token = service.login(
+        db, body.username, body.password, settings, request.app.state.login_limiter, client_ip
+    )
     return TokenResponse(
         access_token=token, must_change_password=user.must_change_password, user=UserOut.of(user)
     )
