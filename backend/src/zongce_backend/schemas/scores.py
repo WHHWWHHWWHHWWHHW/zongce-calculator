@@ -42,9 +42,13 @@ class PreviewRequest(ApiModel):
 
 
 class ItemOut(ApiModel):
+    """一条规则的计算结果。score / raw 为精确值；*_display 为展示用的 4 位小数（§4.1）。"""
+
     rule_id: str
     score: str
     raw: str | None
+    score_display: str
+    raw_display: str | None
     capped: bool
     floored: bool
     peer_count: int | None
@@ -56,6 +60,8 @@ class ItemOut(ApiModel):
             rule_id=item.rule_id,
             score=format(item.score, "f"),
             raw=dec_str(item.raw),
+            score_display=format_score(item.score),
+            raw_display=None if item.raw is None else format_score(item.raw),
             capped=item.capped,
             floored=item.floored,
             peer_count=item.peer_count,

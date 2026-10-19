@@ -3531,6 +3531,21 @@
             ],
             "title": "Raw"
           },
+          "score_display": {
+            "type": "string",
+            "title": "Score Display"
+          },
+          "raw_display": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Display"
+          },
           "capped": {
             "type": "boolean",
             "title": "Capped"
@@ -3567,12 +3582,15 @@
           "rule_id",
           "score",
           "raw",
+          "score_display",
+          "raw_display",
           "capped",
           "floored",
           "peer_count",
           "peer_trimmed_per_side"
         ],
-        "title": "ItemOut"
+        "title": "ItemOut",
+        "description": "一条规则的计算结果。score / raw 为精确值；*_display 为展示用的 4 位小数（§4.1）。"
       },
       "LoginRequest": {
         "properties": {

@@ -4,6 +4,9 @@ export interface ScoreItem {
   rule_id: string
   score: string
   raw: string | null
+  /** 4 位小数的展示值（后端提供；旧的核算结果没有时退回精确值） */
+  score_display?: string
+  raw_display?: string | null
   capped: boolean
   floored: boolean
   peer_count?: number | null
@@ -19,9 +22,11 @@ defineProps<{ items: ScoreItem[]; names: Record<string, string> }>()
       <template #default="{ row }">{{ names[row.rule_id] ?? row.rule_id }}</template>
     </el-table-column>
     <el-table-column label="原始值" min-width="110" class-name="score">
-      <template #default="{ row }">{{ row.raw ?? '—' }}</template>
+      <template #default="{ row }">{{ row.raw_display ?? row.raw ?? '—' }}</template>
     </el-table-column>
-    <el-table-column label="得分" min-width="110" class-name="score" prop="score" />
+    <el-table-column label="得分" min-width="110" class-name="score">
+      <template #default="{ row }">{{ row.score_display ?? row.score }}</template>
+    </el-table-column>
     <el-table-column label="说明" min-width="150">
       <template #default="{ row }">
         <el-tag v-if="row.capped" type="warning" size="small">已封顶</el-tag>

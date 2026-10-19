@@ -1030,7 +1030,10 @@ export interface components {
       /** Detail */
       detail?: components['schemas']['ValidationError'][]
     }
-    /** ItemOut */
+    /**
+     * ItemOut
+     * @description 一条规则的计算结果。score / raw 为精确值；*_display 为展示用的 4 位小数（§4.1）。
+     */
     ItemOut: {
       /** Rule Id */
       rule_id: string
@@ -1038,6 +1041,10 @@ export interface components {
       score: string
       /** Raw */
       raw: string | null
+      /** Score Display */
+      score_display: string
+      /** Raw Display */
+      raw_display: string | null
       /** Capped */
       capped: boolean
       /** Floored */
