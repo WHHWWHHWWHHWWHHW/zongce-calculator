@@ -44,8 +44,9 @@ LIST = {
 
 
 def test_evaluate_counts() -> None:
+    no_activity = {"source": "三查.pdf", "tables": [], "text": "34-122 计科2501 学生0002 9.25 1"}
     summary = _load().evaluate(
-        [ROSTER, LIST, {"source": "空", "tables": [], "text": "无"}], CATALOG
+        [ROSTER, LIST, no_activity, {"source": "空", "tables": [], "text": "无"}], CATALOG
     )
     assert summary["roster_names"] == 3
     assert (summary["documents"], summary["activities"], summary["entries"]) == (1, 1, 8)
