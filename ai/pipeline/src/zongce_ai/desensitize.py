@@ -131,8 +131,9 @@ def collect(documents: Sequence[Document], known_classes: Iterable[str] = ()) ->
                     _collect_text(cell, guessed, majors)
         _collect_text(doc.text, guessed, majors)
     titles = [doc.name for doc in documents]
-    people.students |= {n for n in guessed.students if _plausible(n, titles)}
-    people.teachers |= {n for n in guessed.teachers if _plausible(n, titles)}
+    majors_set = set(majors)
+    people.students |= {n for n in guessed.students if _plausible(n, titles, majors_set)}
+    people.teachers |= {n for n in guessed.teachers if _plausible(n, titles, majors_set)}
     people.ids |= guessed.ids
     people.class_codes |= guessed.class_codes
     people.teachers -= people.students
@@ -148,9 +149,10 @@ _NOT_NAMES = frozenset(
 _NOT_NAME_CHARS = re.compile("[奖级部院赛队组室舍楼届期表]")
 
 
-def _plausible(name: str, titles: Sequence[str]) -> bool:
+def _plausible(name: str, titles: Sequence[str], majors: set[str]) -> bool:
     return (
         name not in _NOT_NAMES
+        and name not in majors  # “计科”“网合”等专业简称
         and not _NOT_NAME_CHARS.search(name)
         and not any(name in title for title in titles)  # 出现在文件名里的是普通词
     )
@@ -255,13 +257,15 @@ def _neighbours(scrubbed: str) -> set[str]:
 def refine(people: People, documents: Sequence[Document], seed: bytes, rounds: int = 3) -> People:
     """用已收集的姓名先替换一遍，再找出与代号并列、但还没收集到的姓名，重复几轮。"""
     titles = [doc.name for doc in documents]
+    majors = set(majors_from(people.class_codes))
     for _ in range(rounds):
         tool = Desensitizer(people, seed)
         new: set[str] = set()
         for doc in documents:
             texts = [cell for table in doc.tables for row in table.rows for cell in row]
             for text in [*texts, doc.text]:
-                new |= {n for n in _neighbours(tool.scrub(text)) if _plausible(n, titles)}
+                found = _neighbours(tool.scrub(text))
+                new |= {n for n in found if _plausible(n, titles, majors)}
         new -= people.students | people.teachers
         if not new:
             break
