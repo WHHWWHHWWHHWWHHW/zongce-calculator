@@ -128,12 +128,14 @@ const selectable = (row: Suggestion) =>
   <section>
     <h2>名单比对</h2>
     <p class="muted">
-      上传学院公布的获奖名单（Excel 或 CSV），与待审核的申报逐条比对。系统只给建议：
+      上传学院公布的获奖名单，与待审核的申报逐条比对：Excel / CSV
+      名单按学号匹配；各部门的活动获奖名单（带文字的 PDF 或 TXT）按“班级 +
+      姓名”找学生、按名单写明的分值对应申报等级。系统只给建议：
       “可快速通过”的条目需要你勾选确认后才会通过，每条都会记入审核记录和审计日志；其余条目请在审核工作台逐条处理。
     </p>
     <p v-if="status" class="muted">
       AI 识别：<el-tag size="small" type="info">{{ status.provider }}</el-tag>
-      <span v-if="!status.image_recognition">（目前只支持表格，不支持图片和扫描件）</span>
+      <span v-if="!status.image_recognition">（支持表格和带文字的 PDF，暂不支持图片和扫描件）</span>
       ；快速通过阈值 {{ status.fast_track_threshold }}
     </p>
     <div class="toolbar">
@@ -150,13 +152,13 @@ const selectable = (row: Suggestion) =>
       </el-select>
       <el-input
         v-model="form.context"
-        placeholder="整表共同信息，如：一类赛事"
+        placeholder="整表说明，如：一类赛事 / 校级"
         class="context"
         maxlength="100"
         aria-label="整表共同信息"
         data-testid="match-context"
       />
-      <el-upload :show-file-list="false" :http-request="upload" accept=".xlsx,.csv">
+      <el-upload :show-file-list="false" :http-request="upload" accept=".xlsx,.csv,.pdf,.txt">
         <el-button type="primary" :loading="busy">上传名单并比对</el-button>
       </el-upload>
     </div>

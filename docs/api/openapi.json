@@ -2255,7 +2255,7 @@
           "AI 辅助审核"
         ],
         "summary": "上传学院名单，与待审核申报比对（只给建议，不改分）",
-        "description": "名单为 .xlsx / .csv，表头需含“学号”，等级写在“级别”“等级”“奖项”“名次”等列。context 是对整张表都成立的说明（如“一类赛事”）。AI_PROVIDER=none 时上传图片或 PDF 会返回 400。班级审核员只看到本班学生。",
+        "description": "两种名单：① .xlsx / .csv 表格，表头需含“学号”，等级写在“级别”“等级”“奖项”“名次”等列，context 是对整张表都成立的说明（如“一类赛事”）；② 带文字层的 .pdf 或 .txt 活动获奖名单（活动名称、等级与分值、“班级 姓名”），按班级 + 姓名找学生、按分值定选项，context 为活动默认级别（缺省“院级”）。图片和没有文字层的 PDF 需要 OCR，AI_PROVIDER=none 时返回 400。班级审核员只看到本班学生。",
         "operationId": "award_match_api_v1_years__year_id__ai_award_match_post",
         "security": [
           {
