@@ -223,7 +223,11 @@ _NON_NAMES = frozenset({"无", "暂无", "待定", "空"})
 
 def suspicious(text: str, majors: tuple[str, ...]) -> int:
     """脱敏后仍像“班级 + 姓名”或整行姓名的地方（可能是没收集到的姓名，需要检查）。"""
-    count = len(find_class_names(text, majors))
+    count = sum(
+        1
+        for found in find_class_names(text, majors)
+        if not PSEUDONYM.fullmatch(found.name) and found.name not in majors
+    )
     count += sum(1 for line in text.splitlines() if name_list(line) is not None)
     return count
 

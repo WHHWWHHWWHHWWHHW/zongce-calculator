@@ -46,6 +46,11 @@ def test_find_class_names_in_dense_text() -> None:
     ]
 
 
+def test_pseudonyms_count_as_names() -> None:
+    got = [(c.class_code, c.name) for c in find_class_names("计科2501学生0012 网合 25W3 学生0345")]
+    assert got == [("计科2501", "学生0012"), ("网合25W3", "学生0345")]
+
+
 def test_unknown_major_needs_majors_list() -> None:
     text = "测绘2401 孙八"
     assert find_class_names(text) == []

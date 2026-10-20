@@ -51,8 +51,8 @@ def majors_from(class_codes: Iterable[str]) -> tuple[str, ...]:
 def _pattern(majors: tuple[str, ...]) -> re.Pattern[str]:
     major = "|".join(re.escape(m) for m in majors)
     klass = rf"(?:{major})\s?{_CLASS_NUMBER}"
-    # 姓名：2–4 个汉字；或“王 锦”这种两个单字之间有空格的写法
-    name = rf"[{CJK}]\s[{CJK}](?![{CJK}])|[{CJK}]{{2,4}}"
+    # 姓名：2–4 个汉字；或“王 锦”这种两个单字之间有空格的写法；脱敏后的代号“学生0001”也算
+    name = rf"学生\d{{4}}|[{CJK}]\s[{CJK}](?![{CJK}])|[{CJK}]{{2,4}}"
     # 姓名后面必须是结尾、分隔符或下一个班级，避免把下一个班级的专业简称吞进姓名
     after = rf"(?=$|[^{CJK}\dA-Za-z]|{klass})"
     return re.compile(rf"(?P<cls>{klass})\s*(?P<name>{name}){after}")
