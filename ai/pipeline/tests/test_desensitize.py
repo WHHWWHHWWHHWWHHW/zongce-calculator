@@ -89,6 +89,7 @@ def test_refine_finds_names_next_to_known_ones() -> None:
         "学23-108-周九 学23-109-吴十\n"
         "留学生 张三 BLAKE JAN\n"
         "AI APP 大赛 张三\n"  # 缩写不是姓名
+        "指导教师 张三 李四\n"  # “教师”是代号的前缀，不能当成姓名
         "一等奖 2 分\n"
     )
     docs = [Document("roster.xlsx", tables=[roster]), Document("x.pdf", text=text)]
@@ -97,6 +98,7 @@ def test_refine_finds_names_next_to_known_ones() -> None:
     people = refine(collect(docs), docs, b"k" * 32)
     assert {"赵小六", "钱七", "孙八", "周九", "吴十", "BLAKEJAN"} <= people.students
     assert "AIAPP" not in people.students
+    assert "教师" not in people.students
     tool = Desensitizer(people, b"k" * 32)
     scrubbed = tool.scrub(text)
     for real in ("赵小六", "钱七", "孙八", "周九", "BLAKE JAN"):
