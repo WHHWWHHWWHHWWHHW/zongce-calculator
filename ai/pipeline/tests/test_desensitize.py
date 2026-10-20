@@ -95,7 +95,7 @@ def test_column_residue() -> None:
         [["姓名", "指导教师", "班级"], ["学生0001", "教师001", "计科2501"], ["张三", "无", ""]]
     ]
     assert column_residue(tables) == 1
-    assert column_residue([[["姓名"], ["学生0001、学生0002"]]]) == 0
+    assert column_residue([[["姓名"], ["学生0001、学生0002"], ["智能 2301 学生0003"]]]) == 0
 
 
 def test_empty_people() -> None:

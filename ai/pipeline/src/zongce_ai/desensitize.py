@@ -163,6 +163,7 @@ class Desensitizer:
 
 
 PSEUDONYM = re.compile(r"学生\d{4}|教师\d{3}")
+_CLASS_CODE = re.compile(rf"[{CJK}]{{2,6}}\s?\d{{2}}[A-Za-z]?\d{{1,2}}")
 
 
 def column_residue(tables: Sequence[Sequence[Sequence[str]]]) -> int:
@@ -177,7 +178,7 @@ def column_residue(tables: Sequence[Sequence[Sequence[str]]]) -> int:
                 continue
             for col, cell in enumerate(row):
                 if (roles or {}).get(col) in ("student", "teacher"):
-                    rest = PSEUDONYM.sub("", cell)
+                    rest = _CLASS_CODE.sub("", PSEUDONYM.sub("", cell))  # 班级不是人名
                     if re.search(rf"[{CJK}]{{2,}}", rest) and rest.strip() not in _NON_NAMES:
                         count += 1
     return count
