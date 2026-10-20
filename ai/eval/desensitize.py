@@ -18,7 +18,14 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from zongce_ai.desensitize import Desensitizer, Document, Table, collect, suspicious
+from zongce_ai.desensitize import (
+    Desensitizer,
+    Document,
+    Table,
+    collect,
+    column_residue,
+    suspicious,
+)
 from zongce_ai.names import majors_from
 
 SAFE_ROOTS = ("real_data", "data")
@@ -121,7 +128,7 @@ def run(source: Path, output: Path, private: Path) -> dict[str, Any]:
             {
                 "file": doc.name,
                 "tables": len(tables),
-                "leaks": tool.leaks(flat),
+                "leaks": tool.leaks(flat) + column_residue(tables),
                 "suspicious": suspicious(flat, majors),
             }
         )

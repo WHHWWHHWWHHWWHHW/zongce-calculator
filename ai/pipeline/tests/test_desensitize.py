@@ -9,7 +9,15 @@ import pytest
 from openpyxl import Workbook
 
 from ai_helpers import REPO_ROOT
-from zongce_ai.desensitize import Desensitizer, Document, People, Table, collect, suspicious
+from zongce_ai.desensitize import (
+    Desensitizer,
+    Document,
+    People,
+    Table,
+    collect,
+    column_residue,
+    suspicious,
+)
 from zongce_ai.names import DEFAULT_MAJORS
 
 TEXT = """团委
@@ -26,9 +34,9 @@ TEXT = """团委
 def _documents() -> list[Document]:
     roster = Table(
         [
-            ["ID", "姓名", "学号", "班级", "积分总和"],
-            ["12345678", "张三", "202500000001", "计科2501", "3.5"],
-            ["12345679", "赵六", "202500000002", "测绘2401", "1"],
+            ["ID", "姓名", "学号", "班级", "创新实践课程学分-积分", "2025年下半年志愿汇时长"],
+            ["12345678", "张三", "202500000001", "计科2501", "3.5", "1"],
+            ["12345679", "赵六", "202500000002", "测绘2401", "1", "0"],
         ]
     )
     awards = Table(
@@ -40,7 +48,7 @@ def _documents() -> list[Document]:
     )
     projects = Table(
         [
-            ["项目名称", "项目负责人", "项目成员", "指导教师"],
+            ["项目名称", "项目负责人", "项目成员（姓名/学号）", "指导教师"],
             ["某项目", "李四", "李四/202500000003, 周九/202500000004", "吴老大"],
         ]
     )
@@ -80,6 +88,14 @@ def test_scrub_is_consistent_and_leak_free() -> None:
     assert Desensitizer(collect(documents), b"k" * 32).mapping == tool.mapping  # 同一密钥可复现
     assert suspicious(scrubbed, (*DEFAULT_MAJORS, "测绘")) == 0
     assert suspicious("计科2501 无名氏\n甲乙 丙丁", DEFAULT_MAJORS) == 2
+
+
+def test_column_residue() -> None:
+    tables = [
+        [["姓名", "指导教师", "班级"], ["学生0001", "教师001", "计科2501"], ["张三", "无", ""]]
+    ]
+    assert column_residue(tables) == 1
+    assert column_residue([[["姓名"], ["学生0001、学生0002"]]]) == 0
 
 
 def test_empty_people() -> None:

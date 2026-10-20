@@ -11,7 +11,7 @@ import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 
-from .names import CJK, find_class_names, majors_from, name_list, split_people
+from .names import CJK, find_class_names, majors_from, name_list, normalize_class, split_people
 
 STUDENT_HEADERS = re.compile(r"姓名|获奖学生|获奖人|负责人|成员|参赛|队员|作者|学生名单|人员")
 TEACHER_HEADERS = re.compile(r"教师|老师")
@@ -47,13 +47,21 @@ class People:
 def _header(row: Sequence[str]) -> dict[int, str] | None:
     """表头行 → {列号: "student" | "teacher" | "class"}；不是表头时返回 None。
 
-    表头的每一格都很短（不超过 10 个字）且不含长数字，避免把“参赛作品……”之类的数据行当成表头。
+    表头的每一格都不长（不超过 20 个字），不含长数字，也不含班级；这样不会把数据行当成表头。
     """
-    if any(len(c.strip()) > 10 or DIGITS.search(c) for c in row):
+    if any(
+        len(c.strip()) > 20
+        or DIGITS.search(c)
+        or normalize_class(c)
+        or re.fullmatch(r"\d+(\.\d+)?", c.strip())  # 序号、分数等数字只出现在数据行
+        for c in row
+    ):
         return None
     roles: dict[int, str] = {}
     for col, cell in enumerate(row):
         label = re.sub(r"\s", "", cell)
+        if len(label) > 12:  # 表头关键词所在的格都很短
+            continue
         if TEACHER_HEADERS.search(label):
             roles[col] = "teacher"
         elif STUDENT_HEADERS.search(label):
@@ -152,6 +160,30 @@ class Desensitizer:
         if self._names is not None:
             count += len(self._names.findall(text))
         return count
+
+
+PSEUDONYM = re.compile(r"学生\d{4}|教师\d{3}")
+
+
+def column_residue(tables: Sequence[Sequence[Sequence[str]]]) -> int:
+    """脱敏后的表格里，人名列中仍有汉字（不是代号）的格数（应为 0）。"""
+    count = 0
+    for rows in tables:
+        roles: dict[int, str] | None = None
+        for row in rows:
+            header = _header(row)
+            if header is not None:
+                roles = header
+                continue
+            for col, cell in enumerate(row):
+                if (roles or {}).get(col) in ("student", "teacher"):
+                    rest = PSEUDONYM.sub("", cell)
+                    if re.search(rf"[{CJK}]{{2,}}", rest) and rest.strip() not in _NON_NAMES:
+                        count += 1
+    return count
+
+
+_NON_NAMES = frozenset({"无", "暂无", "待定", "空"})
 
 
 def suspicious(text: str, majors: tuple[str, ...]) -> int:
