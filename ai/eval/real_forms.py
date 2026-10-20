@@ -69,13 +69,17 @@ def evaluate(documents: list[dict[str, Any]], catalog: dict[str, Any]) -> dict[s
     options: Counter[str] = Counter()
     for doc in documents:
         parsed = parse_activity_list(doc["text"], majors)
-        if not parsed.entries:
+        entries = [
+            e for e in parsed.entries if e.activity
+        ]  # 只统计活动名单（三查、赛事表等另行处理）
+        if not parsed.activities or not entries:
             continue
         stats["documents"] += 1
         stats["activities"] += parsed.activities
-        stats["entries"] += len(parsed.entries)
-        stats["partial_lines"] += len(parsed.partial_lines)
-        for entry in parsed.entries:
+        stats["entries"] += len(entries)
+        first = min(e.line for e in entries)
+        stats["partial_lines"] += sum(1 for n in parsed.partial_lines if n >= first)
+        for entry in entries:
             classes = roster.get(entry.name, set())
             if entry.class_code is not None:
                 stats["entries_with_class"] += 1
