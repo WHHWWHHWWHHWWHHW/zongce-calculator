@@ -8,7 +8,7 @@
 
 import random
 import re
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
 
 from .names import CJK, find_class_names, majors_from, name_list, normalize_class, split_people
@@ -71,6 +71,24 @@ def _header(row: Sequence[str]) -> dict[int, str] | None:
     return roles or None
 
 
+def _rows_with_roles(
+    tables: Sequence[Sequence[Sequence[str]]],
+) -> Iterator[tuple[Sequence[str], dict[int, str]]]:
+    """逐行给出数据行及其列角色。PDF 每页是一个表格，后续页没有表头时沿用上一页的表头
+    （列数相同时）。"""
+    roles: dict[int, str] = {}
+    width = -1
+    for rows in tables:
+        if rows and len(rows[0]) != width:
+            roles = {}
+        for row in rows:
+            header = _header(row)
+            if header is not None:
+                roles, width = header, len(row)
+                continue
+            yield row, roles
+
+
 def _collect_text(text: str, people: People, majors: tuple[str, ...]) -> None:
     for found in find_class_names(text, majors):
         people.students.add(found.name)
@@ -94,21 +112,15 @@ def collect(documents: Sequence[Document], known_classes: Iterable[str] = ()) ->
     people = People()
     people.class_codes.update(known_classes)
     for doc in documents:
-        for table in doc.tables:
-            roles: dict[int, str] | None = None
-            for row in table.rows:
-                header = _header(row)
-                if header is not None:
-                    roles = header
-                    continue
-                for col, cell in enumerate(row):
-                    role = (roles or {}).get(col)
-                    if role == "class":
-                        people.class_codes.add(cell.strip())
-                    elif role is not None:
-                        names = split_people(cell)
-                        (people.teachers if role == "teacher" else people.students).update(names)
-                    people.ids.update(DIGITS.findall(cell))
+        for row, roles in _rows_with_roles([t.rows for t in doc.tables]):
+            for col, cell in enumerate(row):
+                role = roles.get(col)
+                if role == "class":
+                    people.class_codes.add(cell.strip())
+                elif role is not None:
+                    names = split_people(cell)
+                    (people.teachers if role == "teacher" else people.students).update(names)
+                people.ids.update(DIGITS.findall(cell))
     # 以上来自表头明确的人名列，一定是姓名；下面从文字中按写法推断的，要过滤掉明显不是姓名的词
     majors = majors_from(people.class_codes)
     guessed = People()
@@ -192,18 +204,12 @@ _CLASS_CODE = re.compile(rf"[{CJK}]{{2,6}}\s?\d{{2}}[A-Za-z]?\d{{1,2}}")
 def column_residue(tables: Sequence[Sequence[Sequence[str]]]) -> int:
     """脱敏后的表格里，人名列中仍有汉字（不是代号）的格数（应为 0）。"""
     count = 0
-    for rows in tables:
-        roles: dict[int, str] | None = None
-        for row in rows:
-            header = _header(row)
-            if header is not None:
-                roles = header
-                continue
-            for col, cell in enumerate(row):
-                if (roles or {}).get(col) in ("student", "teacher"):
-                    rest = _CLASS_CODE.sub("", PSEUDONYM.sub("", cell))  # 班级不是人名
-                    if re.search(rf"[{CJK}]{{2,}}", rest) and rest.strip() not in _NON_NAMES:
-                        count += 1
+    for row, roles in _rows_with_roles(tables):
+        for col, cell in enumerate(row):
+            if roles.get(col) in ("student", "teacher"):
+                rest = _CLASS_CODE.sub("", PSEUDONYM.sub("", cell))  # 班级不是人名
+                if re.search(rf"[{CJK}]{{2,}}", rest) and rest.strip() not in _NON_NAMES:
+                    count += 1
     return count
 
 

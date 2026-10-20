@@ -68,6 +68,15 @@ def test_collect_people() -> None:
     assert "测绘2401" in people.class_codes
 
 
+def test_header_carries_over_to_next_page() -> None:
+    page1 = Table([["序号", "赛事名称", "获奖学生总人名"], ["1", "某赛", "甲乙"]])
+    page2 = Table([["2", "某赛", "丙丁, 戊己"]])  # 第二页没有表头
+    other = Table([["1", "2"], ["庚辛", "壬癸"]])  # 列数不同，不沿用
+    people = collect([Document("x.pdf", tables=[page1, page2, other])])
+    assert people.students == {"甲乙", "丙丁", "戊己"}
+    assert column_residue([page1.rows, page2.rows]) == 2  # 按格计数
+
+
 def test_guessed_words_that_are_not_names() -> None:
     doc = Document(
         "三查汇总+优秀宿舍.pdf", text="优秀宿舍 宿舍\n计科2501 一等奖\n获奖 名单\n张三 李四"
