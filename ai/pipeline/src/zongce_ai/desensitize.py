@@ -208,6 +208,8 @@ def column_residue(tables: Sequence[Sequence[Sequence[str]]]) -> int:
         for col, cell in enumerate(row):
             if roles.get(col) in ("student", "teacher"):
                 rest = _CLASS_CODE.sub("", PSEUDONYM.sub("", cell))  # 班级不是人名
+                if re.search(r"[:：]", rest):  # “一等奖：2 分”之类的小标题
+                    continue
                 if re.search(rf"[{CJK}]{{2,}}", rest) and rest.strip() not in _NON_NAMES:
                     count += 1
     return count
@@ -221,3 +223,46 @@ def suspicious(text: str, majors: tuple[str, ...]) -> int:
     count = len(find_class_names(text, majors))
     count += sum(1 for line in text.splitlines() if name_list(line) is not None)
     return count
+
+
+_CAPS_NAME = re.compile(r"\b[A-Z]{2,}(?:\s+[A-Z]{2,})+\b")  # 外籍学生的英文姓名（如 BLAKE JAN）
+_ACRONYMS = frozenset({"AI", "APP", "ICT", "SCI", "EI", "IT", "CPU", "GPU", "IOT", "ACM", "ICPC"})
+_DORM_NAME = re.compile(rf"\d{{1,2}}-\d{{3}}-([{CJK}]{{2,4}})")  # “23-108-张三”
+_TOKEN_SPLIT = re.compile(r"[\s,，、;；|]+")
+
+
+def _neighbours(scrubbed: str) -> set[str]:
+    """已替换的代号旁边、写法同为姓名的词：同一行里与“学生0001”并列的 2–4 字词、紧跟在代号后的
+    汉字、英文大写姓名，以及“楼号-房间-姓名”。"""
+    found = {m.group(1) for m in _DORM_NAME.finditer(scrubbed)}
+    for line in scrubbed.splitlines():
+        if not PSEUDONYM.search(line):
+            continue
+        line = re.sub(r"^[^:：]*[:：]", "", line) if re.search(r"[:：]", line) else line
+        for caps in _CAPS_NAME.findall(line):
+            words = caps.split()
+            if not set(words) & _ACRONYMS:
+                found.add("".join(words))
+        for token in _TOKEN_SPLIT.split(line):
+            token = PSEUDONYM.sub(" ", token).strip()
+            for part in token.split():
+                if re.fullmatch(rf"[{CJK}]{{2,4}}", part):
+                    found.add(part)
+    return found
+
+
+def refine(people: People, documents: Sequence[Document], seed: bytes, rounds: int = 3) -> People:
+    """用已收集的姓名先替换一遍，再找出与代号并列、但还没收集到的姓名，重复几轮。"""
+    titles = [doc.name for doc in documents]
+    for _ in range(rounds):
+        tool = Desensitizer(people, seed)
+        new: set[str] = set()
+        for doc in documents:
+            texts = [cell for table in doc.tables for row in table.rows for cell in row]
+            for text in [*texts, doc.text]:
+                new |= {n for n in _neighbours(tool.scrub(text)) if _plausible(n, titles)}
+        new -= people.students | people.teachers
+        if not new:
+            break
+        people.students |= new
+    return people

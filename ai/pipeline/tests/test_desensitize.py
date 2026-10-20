@@ -16,6 +16,7 @@ from zongce_ai.desensitize import (
     Table,
     collect,
     column_residue,
+    refine,
     suspicious,
 )
 from zongce_ai.names import DEFAULT_MAJORS
@@ -75,6 +76,33 @@ def test_header_carries_over_to_next_page() -> None:
     people = collect([Document("x.pdf", tables=[page1, page2, other])])
     assert people.students == {"甲乙", "丙丁", "戊己"}
     assert column_residue([page1.rows, page2.rows]) == 2  # 按格计数
+
+
+def test_refine_finds_names_next_to_known_ones() -> None:
+    roster = Table(
+        [["姓名", "班级"], ["张三", "计科2501"], ["李四", "计科2501"], ["王五", "计科2501"]]
+    )
+    text = (
+        "4*100米：张三 赵小六 李四\n"
+        "张三，钱七，李四\n"
+        "张三孙八\n"  # 粘在一起
+        "学23-108-周九 学23-109-吴十\n"
+        "留学生 张三 BLAKE JAN\n"
+        "AI APP 大赛 张三\n"  # 缩写不是姓名
+        "一等奖 2 分\n"
+    )
+    docs = [Document("roster.xlsx", tables=[roster]), Document("x.pdf", text=text)]
+    one_round = refine(collect(docs), docs, b"k" * 32, rounds=1)
+    assert "赵小六" in one_round.students
+    people = refine(collect(docs), docs, b"k" * 32)
+    assert {"赵小六", "钱七", "孙八", "周九", "吴十", "BLAKEJAN"} <= people.students
+    assert "AIAPP" not in people.students
+    tool = Desensitizer(people, b"k" * 32)
+    scrubbed = tool.scrub(text)
+    for real in ("赵小六", "钱七", "孙八", "周九", "BLAKE JAN"):
+        assert real not in scrubbed
+    assert "一等奖" in scrubbed
+    assert column_residue([[["姓名"], ["一等奖：2 分"]]]) == 0
 
 
 def test_guessed_words_that_are_not_names() -> None:

@@ -24,6 +24,7 @@ from zongce_ai.desensitize import (
     Table,
     collect,
     column_residue,
+    refine,
     suspicious,
 )
 from zongce_ai.names import majors_from
@@ -102,11 +103,11 @@ def run(source: Path, output: Path, private: Path) -> dict[str, Any]:
             documents.append(reader(path, name))
         except Exception as exc:  # 单个文件读失败不影响其他文件  # pragma: no cover
             failed.append(f"{name}：{type(exc).__name__}")
-    people = collect(documents)
     private.mkdir(parents=True, exist_ok=True)
     key = private / "secret.key"
     if not key.exists():
         key.write_bytes(os.urandom(32))
+    people = refine(collect(documents), documents, key.read_bytes())
     tool = Desensitizer(people, key.read_bytes())
     (private / "对照表.json").write_text(
         json.dumps({"names": tool.mapping, "ids": tool.id_mapping}, ensure_ascii=False, indent=1),
