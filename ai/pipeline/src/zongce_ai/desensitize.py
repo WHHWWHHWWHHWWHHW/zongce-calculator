@@ -109,15 +109,38 @@ def collect(documents: Sequence[Document], known_classes: Iterable[str] = ()) ->
                         names = split_people(cell)
                         (people.teachers if role == "teacher" else people.students).update(names)
                     people.ids.update(DIGITS.findall(cell))
+    # 以上来自表头明确的人名列，一定是姓名；下面从文字中按写法推断的，要过滤掉明显不是姓名的词
     majors = majors_from(people.class_codes)
+    guessed = People()
     for doc in documents:
         for table in doc.tables:
             for row in table.rows:
                 for cell in row:
-                    _collect_text(cell, people, majors)
-        _collect_text(doc.text, people, majors)
+                    _collect_text(cell, guessed, majors)
+        _collect_text(doc.text, guessed, majors)
+    titles = [doc.name for doc in documents]
+    people.students |= {n for n in guessed.students if _plausible(n, titles)}
+    people.teachers |= {n for n in guessed.teachers if _plausible(n, titles)}
+    people.ids |= guessed.ids
+    people.class_codes |= guessed.class_codes
     people.teachers -= people.students
     return people
+
+
+# 表单里常见、但不会是姓名的词与字（按写法推断的姓名含有它们时不算姓名）
+_NOT_NAMES = frozenset(
+    {"宿舍", "班级", "姓名", "名单", "学号", "序号", "备注", "合计", "总计", "小计", "优秀", "获奖",
+     "名次", "参赛", "活动", "无"}
+)  # fmt: skip
+_NOT_NAME_CHARS = re.compile("[奖级部院赛队组室舍楼届期表]")
+
+
+def _plausible(name: str, titles: Sequence[str]) -> bool:
+    return (
+        name not in _NOT_NAMES
+        and not _NOT_NAME_CHARS.search(name)
+        and not any(name in title for title in titles)  # 出现在文件名里的是普通词
+    )
 
 
 class Desensitizer:

@@ -68,6 +68,13 @@ def test_collect_people() -> None:
     assert "测绘2401" in people.class_codes
 
 
+def test_guessed_words_that_are_not_names() -> None:
+    doc = Document(
+        "三查汇总+优秀宿舍.pdf", text="优秀宿舍 宿舍\n计科2501 一等奖\n获奖 名单\n张三 李四"
+    )
+    assert collect([doc]).students == {"张三", "李四"}
+
+
 def test_scrub_is_consistent_and_leak_free() -> None:
     documents = _documents()
     tool = Desensitizer(collect(documents), b"k" * 32)
