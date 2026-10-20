@@ -41,6 +41,7 @@ class _Model(BaseModel):
 class StudentRef(_Model):
     student_id: str
     name: str
+    class_name: str | None = None
 
 
 class DeclarationRef(_Model):
@@ -88,7 +89,7 @@ def match(
     for d in declarations:
         pending.setdefault(d.student_id, []).append(d)
     used: set[int] = set()
-    seen: set[tuple[str, str | None]] = set()
+    seen: set[tuple[str, str | None, str]] = set()
     suggestions: list[Suggestion] = []
 
     for record in records:
@@ -112,14 +113,14 @@ def match(
                 reasons=reasons,
             )
 
-        key = (record.student_id, record.option_code)
+        key = (record.student_id, record.option_code, record.group)
         if key in seen:
             suggestions.append(suggest(MatchStatus.DUPLICATE, Route.INFO, ("名单中重复出现",)))
             continue
         seen.add(key)
         account = accounts.get(record.student_id)
         if account is None:
-            reasons = ("学号不存在或不是学生", *record.issues)
+            reasons = record.issues if record.by_name else ("学号不存在或不是学生", *record.issues)
             suggestions.append(suggest(MatchStatus.UNKNOWN_STUDENT, Route.MANUAL, reasons))
             continue
         candidates = [d for d in pending.get(record.student_id, []) if d.id not in used]
@@ -130,7 +131,7 @@ def match(
         same = next((d for d in candidates if d.option_code == record.option_code), None)
         declaration = same or candidates[0]
         notes = list(record.issues)
-        if record.option_code is None:
+        if record.option_code is None and not record.unit_item:
             status = MatchStatus.UNCERTAIN
         elif same is None:
             status = MatchStatus.OPTION_MISMATCH

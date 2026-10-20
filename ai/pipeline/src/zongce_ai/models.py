@@ -20,6 +20,9 @@ class ExtractedRecord(_Model):
     value: Decimal | None = Field(default=None, description="表单给出的分值（如有）")
     confidence: Decimal = Field(ge=0, le=1)
     issues: tuple[str, ...] = ()
+    group: str = Field(default="", description="所属活动等分组；同一学生在不同活动中出现不算重复")
+    unit_item: bool = Field(default=False, description="按次计分的项目，本来就没有选项")
+    by_name: bool = Field(default=False, description="名单没有学号，按班级 + 姓名找的学生")
 
 
 class TableExtraction(_Model):

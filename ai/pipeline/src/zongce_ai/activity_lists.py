@@ -40,6 +40,7 @@ _LEVEL_ONLY = re.compile(rf"^(?P<label>{_LEVEL_WORDS})\s*[:：]?$")
 _POINTS_ONLY = re.compile(r"^(?P<points>\d+(?:\.\d+)?)\s*分$")
 _PSEUDONYM = r"学生\d{4}"
 _NAME = rf"(?:{_PSEUDONYM}|[{CJK}]{{2,4}})"
+_ORGANIZATION = re.compile("[会部协社团院系处室组队]$|中心$")
 _DORM_NAME = re.compile(rf"学?\s*\d{{1,2}}-\d{{3}}[-\s]*(?P<name>{_NAME})")
 
 
@@ -76,7 +77,9 @@ def _join_wrapped(lines: list[str], majors: tuple[str, ...]) -> list[tuple[int, 
     return joined
 
 
-def _people(line: str, majors: tuple[str, ...]) -> tuple[list[tuple[str | None, str]], bool]:
+def _people(
+    line: str, majors: tuple[str, ...], in_list: bool
+) -> tuple[list[tuple[str | None, str]], bool]:
     """一行名单中的 (班级, 姓名)；第二个值表示是否还有没认出的内容。"""
     found: list[tuple[str | None, str]] = []
     rest = line
@@ -94,7 +97,9 @@ def _people(line: str, majors: tuple[str, ...]) -> tuple[list[tuple[str | None, 
     else:
         names = [t for t in leftovers if re.fullmatch(_NAME, t)]
         lone_word = not found and len(names) == 1 and not re.fullmatch(_PSEUDONYM, names[0])
-        if lone_word:  # 只有一个 2–4 字的词（如“心理协会”），是标题不是名单
+        # 只有一个 2–4 字的词：在某个等级下面、且不像组织名时算姓名（名单换行后剩下的一个人），
+        # 否则是“心理协会”这类标题
+        if lone_word and (not in_list or _ORGANIZATION.search(names[0])):
             return [], False
         found.extend((None, n) for n in names)
         leftovers = [t for t in leftovers if t not in names]
@@ -129,7 +134,7 @@ def parse_activity_list(text: str, majors: tuple[str, ...] = DEFAULT_MAJORS) -> 
         elif m := _POINTS_ONLY.match(line):
             points = Decimal(m.group("points"))
         else:
-            people, leftover = _people(line, majors)
+            people, leftover = _people(line, majors, in_list=bool(level))
             if not people:
                 continue  # 部门名、学院名等标题行
             if leftover:
