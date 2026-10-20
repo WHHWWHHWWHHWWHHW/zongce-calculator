@@ -32,12 +32,15 @@ async function onCommand(command: string): Promise<void> {
 <template>
   <el-container class="layout">
     <el-header class="layout-header">
-      <RouterLink to="/" class="brand">综测核算平台</RouterLink>
+      <RouterLink to="/" class="brand">综测智能核算平台</RouterLink>
       <el-menu
         mode="horizontal"
         :default-active="String(route.name ?? '')"
         class="layout-menu"
         :ellipsis="true"
+        background-color="#1665c7"
+        text-color="#dbe7f7"
+        active-text-color="#ffffff"
       >
         <el-menu-item
           v-for="item in menu"
@@ -72,14 +75,17 @@ async function onCommand(command: string): Promise<void> {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-light);
+  height: 56px;
+  background: var(--el-color-primary);
   padding: 0 16px;
+  color: #fff;
 }
 
 .brand {
+  font-size: 17px;
   font-weight: 600;
-  color: var(--el-color-primary);
+  letter-spacing: 1px;
+  color: #fff;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -87,12 +93,24 @@ async function onCommand(command: string): Promise<void> {
 .layout-menu {
   flex: 1;
   min-width: 0;
+  height: 56px;
   border-bottom: none;
+  --el-menu-hover-bg-color: #12519f;
+}
+
+.layout-menu :deep(.el-menu-item.is-active) {
+  border-bottom: 3px solid #fff;
 }
 
 .user {
   cursor: pointer;
   white-space: nowrap;
+  color: #fff;
+}
+
+.user-role {
+  color: #dbe7f7;
+  margin-left: 4px;
 }
 
 .layout-main {
