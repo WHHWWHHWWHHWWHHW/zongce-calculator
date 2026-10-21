@@ -100,10 +100,20 @@ def sample(folder: Path, n: int, seed: int) -> list[dict[str, str]]:
     return rows
 
 
-def write_csv(rows: list[dict[str, str]], path: Path) -> None:
+REAL_NAME = "真实姓名（仅本机，核对用）"
+
+
+def write_csv(rows: list[dict[str, str]], path: Path, mapping: Path | None = None) -> None:
+    """mapping 为脱敏对照表时，增加一列真实姓名，方便负责人对照原始文件核对（文件只在本机）。"""
+    fields = SYSTEM + HUMAN
+    if mapping is not None:
+        names = json.loads(mapping.read_text(encoding="utf-8"))["names"]
+        back = {pseudo: real for real, pseudo in names.items()}
+        rows = [{**row, REAL_NAME: back.get(row["系统_姓名"], "")} for row in rows]
+        fields = [*SYSTEM, REAL_NAME, *HUMAN]
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8-sig", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=SYSTEM + HUMAN)
+        writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
         for row in rows:
             writer.writerow({**dict.fromkeys(HUMAN, ""), **row})
@@ -176,6 +186,9 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
     s.add_argument("output", type=Path)
     s.add_argument("--n", type=int, default=300)
     s.add_argument("--seed", type=int, default=20261021)
+    s.add_argument(
+        "--mapping", type=Path, help="脱敏对照表；给出时增加一列真实姓名（只在本机核对用）"
+    )
     c = sub.add_parser("score")
     c.add_argument("labelled", type=Path)
     c.add_argument("--report", type=Path)
@@ -183,7 +196,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
     if args.command == "sample":
         _check_safe(args.output)
         rows = sample(args.desensitized, args.n, args.seed)
-        write_csv(rows, args.output)
+        write_csv(rows, args.output, args.mapping)
         summary: dict[str, Any] = {"samples": len(rows), "output": str(args.output)}
     else:
         summary = score(args.labelled)

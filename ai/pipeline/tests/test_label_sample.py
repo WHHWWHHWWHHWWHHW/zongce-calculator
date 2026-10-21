@@ -85,6 +85,20 @@ def test_sample_then_score(tmp_path: Path) -> None:
     assert "学生0001" not in text
 
 
+def test_sample_with_real_names_for_local_checking(tmp_path: Path) -> None:
+    module = _load()
+    mapping = tmp_path / "real_data" / "私密" / "对照表.json"
+    mapping.parent.mkdir(parents=True)
+    names = {"张三": "学生0001", "李四": "学生0002"}
+    mapping.write_text(json.dumps({"names": names, "ids": {}}), encoding="utf-8")
+    out = tmp_path / "real_data" / "标注" / "核对.csv"
+    module.main(["sample", str(_folder(tmp_path)), str(out), "--n", "8", "--mapping", str(mapping)])
+    with out.open(encoding="utf-8-sig", newline="") as f:
+        rows = {r["系统_姓名"]: r for r in csv.DictReader(f)}
+    assert rows["学生0001"][module.REAL_NAME] == "张三"
+    assert rows["学生0005"][module.REAL_NAME] == ""
+
+
 def test_empty_and_unsafe(tmp_path: Path) -> None:
     module = _load()
     empty = tmp_path / "real_data" / "空"
