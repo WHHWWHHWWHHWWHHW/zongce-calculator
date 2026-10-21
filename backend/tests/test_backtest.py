@@ -57,8 +57,9 @@ def test_compare_and_classify() -> None:
     assert result.rounded_officials == 1
     final = result.stats["final_score"]
     assert final.compared == 7
-    assert final.matched == {"v1": 4, "intermediate": 5}  # 9001、9002、9006、9007（+ 9003）
-    assert dict(final.categories) == {"intermediate": 1, "boundary": 1, "unexplained": 1}
+    assert final.matched == {"v1": 4, "intermediate": 5, "truncate": 4}
+    # v1：9001、9002、9006、9007；中间值舍入另加 9003；截断：9001、9004、9006、9007
+    assert dict(final.categories) == {"intermediate": 1, "truncate": 1, "unexplained": 1}
     assert final.max_abs_diff == Decimal("0.1")  # 4.2000 与 4.1000
     for name in ("moral_total", "competence_total", "quality_total"):
         stat = result.stats[name]
@@ -66,7 +67,11 @@ def test_compare_and_classify() -> None:
     assert result.unexplained == 1
     by_student = {d.student: d for d in result.differences}
     assert set(by_student) == {"TEST9003", "TEST9004", "TEST9005"}
-    assert by_student["TEST9003"].computed == {"v1": "3.0333", "intermediate": "3.0334"}
+    assert by_student["TEST9003"].computed == {
+        "v1": "3.0333",
+        "intermediate": "3.0334",
+        "truncate": "3.0333",
+    }
     assert by_student["TEST9004"].exact == "3.47085"
     assert result.mapped_columns["能力分"] == "ability"
     assert result.mapped_columns["官方综合素质（÷20 前）"] == "官方 quality_total"
@@ -78,7 +83,7 @@ def test_report_has_statistics_only_and_details_stay_local() -> None:
     report = render_report(result, label="合成数据", rules=RULES, date="2026-10-20")
     assert "TEST" not in report  # 不含学号
     assert "3.4708" not in report  # 不含个人分数
-    assert "| 综测成绩 | 7 | 4（57.14%） | 5（71.43%） | 0.1000 |" in report
+    assert "| 综测成绩 | 7 | 4（57.14%） | 5（71.43%） | 4（57.14%） | 0.1000 |" in report
     assert "其中 1 处无法用已知口径解释" in report
     assert "跳过：学号为空 1 行；学号重复 1 行；没有可识别的官方结果 1 行" in report
     assert "超过 4 位小数" in report
@@ -107,6 +112,17 @@ def test_explained_differences_only() -> None:
     )
     report = render_report(run(rows, RULES, skeleton), label="x", rules=RULES, date="d")
     assert "全部差异都可以用上表的已知口径解释" in report
+
+
+def test_rounding_boundary_on_subtotal() -> None:
+    # 综合素质 78.12345 恰在 .5 边界：v1 进位为 78.1235，官方 78.1234；截断口径只影响综测成绩
+    table = (
+        "学号,学分绩点,综合素质评价总分,官方综合素质,官方综测成绩\n"
+        "TEST1,4,78.12345,78.1234,3.9765\n"
+    )
+    rows, skeleton = parse_table("q.csv", table.encode())
+    result = run(rows, RULES, skeleton)
+    assert [(d.field, d.category) for d in result.differences] == [("quality_total", "boundary")]
 
 
 def test_direct_quality_mode_and_missing_subtotals() -> None:
@@ -170,17 +186,21 @@ def test_official_column_override_and_direct_quality(tmp_path: Path) -> None:
          "学业水平评价成绩_(必填)", "班级测评总分_(必填)"],
         ["12", "TEST1", "虚构", "78.875", "3.6524", "3.7252"],
         ["12", "TEST2", "虚构", "72.5", "5", "4.65625"],  # 未舍入的官方值
+        ["12", "TEST3", "虚构", "放弃", "3.6524", "2.7393"],  # 放弃综合素质评价：按 0 分
     ]  # fmt: skip
     rows, skeleton = parse_table("t.xlsx", xlsx(table), {"班级测评总分": "final_score"})
     assert rows[0].score_input.quality_mode == "direct"
+    assert [r.waived for r in rows] == [False, False, True]
     result = run(rows, RULES, skeleton)
-    assert result.stats["final_score"].matched["v1"] == 2
-    assert result.rounded_officials == 1
+    assert result.stats["final_score"].matched["v1"] == 3
+    assert (result.rounded_officials, result.waived) == (1, 1)
     path = tmp_path / "t.xlsx"
     path.write_bytes(xlsx(table))
     report, details = tmp_path / "r.md", tmp_path / "d.csv"
     cli.main(["backtest", str(path), "--official", "班级测评总分=final_score",
               "--report", str(report), "--details", str(details)])  # fmt: skip
-    assert "| 综测成绩 | 2 |" in report.read_text(encoding="utf-8")
+    text = report.read_text(encoding="utf-8")
+    assert "| 综测成绩 | 3 |" in text
+    assert "有 1 名学生的综合素质写“放弃”，按 0 分核算" in text
     with pytest.raises(SystemExit, match="列名=字段"):
         cli.main(["backtest", str(path), "--official", "班级测评总分=总分"])

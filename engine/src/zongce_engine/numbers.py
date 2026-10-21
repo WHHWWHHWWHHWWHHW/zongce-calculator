@@ -2,7 +2,7 @@
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from decimal import ROUND_FLOOR, ROUND_HALF_UP, Decimal
+from decimal import ROUND_DOWN, ROUND_FLOOR, ROUND_HALF_UP, Decimal
 
 ZERO = Decimal(0)
 _HALF = Decimal("0.5")
@@ -25,6 +25,11 @@ def round_js(value: Decimal, places: int) -> Decimal:
     """
     quantum = Decimal(1).scaleb(-places)
     return js_round(value.scaleb(places)).scaleb(-places).quantize(quantum)
+
+
+def truncate(value: Decimal, places: int) -> Decimal:
+    """保留 ``places`` 位小数，多余的位数直接截去（向 0 取整，同 Excel ``TRUNC``）。"""
+    return value.quantize(Decimal(1).scaleb(-places), rounding=ROUND_DOWN)
 
 
 def clamp(value: Decimal, low: Decimal, high: Decimal) -> Decimal:

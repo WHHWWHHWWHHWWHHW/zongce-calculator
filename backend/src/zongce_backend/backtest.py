@@ -3,9 +3,13 @@
 - 输入：一个班的历史数据表（.xlsx / .csv）。每行一名学生，包括计分输入（学分绩点、第二课堂、
   公益劳动、体测、宿舍、能力分、思想品德四项的分数或评议名单）和官方结果（列名以“官方”“公布”
   或“公示”开头，如“官方综测成绩”“官方综合素质”“官方思想品德”“官方综合能力”）。
-- 口径：规则 v1（精确十进制，只舍入最终结果）和“中间值也舍入到 4 位”（R-005）。
-- 差异分类：可由 R-005 解释；舍入边界（R-008：精确值恰在 .5 边界，官方少进位一位）；无法解释。
-- 输出：统计报告（不含学号、姓名、分数明细，可以入库）和逐条明细（只能留在本机 data/ 目录）。
+- 口径：规则 v1（精确十进制，只舍入最终结果）、“中间值也舍入到 4 位”（R-005）、
+  “最终结果截断到 4 位”（R-011）。
+- 差异分类：可由 R-005 解释；可由截断解释（R-011）；舍入边界（R-008：精确值恰在 .5 边界，
+  官方少进位一位）；无法解释。
+- 综合素质列写“放弃”的学生按 0 分核算（学院导出表的做法，R-010），报告中单独计数。
+- 输出：统计报告（不含学号、姓名、分数明细，可以入库）和逐条明细（只能留在本机 data/ 或
+  real_data/ 目录）。
 
 只做比对，不写数据库。
 """
@@ -48,12 +52,16 @@ RESULT_FIELDS: dict[str, tuple[str, tuple[str, ...]]] = {
 HYPOTHESES: dict[str, str] = {
     "v1": "规则 v1（精确十进制，只舍入最终结果）",
     "intermediate": "中间值也舍入到 4 位（R-005）",
+    "truncate": "最终结果截断到 4 位（R-011）",
 }
 CATEGORIES: dict[str, str] = {
     "intermediate": "可由 R-005（中间值舍入）解释",
+    "truncate": "可由截断解释（R-011）",
     "boundary": "舍入边界（R-008：精确值恰在 .5 边界，官方少进位）",
     "unexplained": "无法解释，需人工核查",
 }
+# 综合素质列中表示“放弃综合素质评价”的写法；学院导出表按 0 分计入总分（R-010）
+WAIVED_WORDS = ("放弃",)
 
 
 @dataclass(frozen=True)
@@ -70,6 +78,7 @@ class BacktestRow:
     student: str
     score_input: ScoreInput
     official: Mapping[str, Official]
+    waived: bool = False  # 综合素质写“放弃”，按 0 分核算
 
 
 @dataclass(frozen=True)
@@ -101,6 +110,7 @@ class BacktestResult:
     stats: dict[str, FieldStat]
     differences: list[Difference]
     rounded_officials: int
+    waived: int = 0
 
     @property
     def unexplained(self) -> int:
@@ -179,16 +189,21 @@ def _moral(text: str) -> MoralValue:
     return numbers[0] if numbers else None
 
 
-def _row_input(row: list[str], cols: _Columns) -> ScoreInput:
+def _row_input(row: list[str], cols: _Columns) -> tuple[ScoreInput, bool]:
+    """一行的计分输入；第二个值表示综合素质写的是“放弃”（按 0 分核算）。"""
+
     def cell(col: int) -> str:
         return row[col].strip() if col < len(row) else ""
 
     values: dict[str, object] = {}
+    waived = False
     for col, input_field in cols.inputs.items():
         text = cell(col)
         if not text:
             continue
-        if input_field in MORAL_SCORE_FIELDS:
+        if input_field is ScoreField.QUALITY_DIRECT and text in WAIVED_WORDS:
+            values[input_field.value], waived = Decimal(0), True
+        elif input_field in MORAL_SCORE_FIELDS:
             values[input_field.value] = _moral(text)
         else:
             values[input_field.value] = _number(text)
@@ -196,7 +211,7 @@ def _row_input(row: list[str], cols: _Columns) -> ScoreInput:
         values["ability"] = _number(cell(cols.ability))
     if values.get("quality_direct") is not None:
         values["quality_mode"] = "direct"
-    return ScoreInput(**values)  # type: ignore[arg-type]
+    return ScoreInput(**values), waived  # type: ignore[arg-type]
 
 
 def _official(text: str) -> Official | None:
@@ -244,7 +259,8 @@ def parse_table(
         if not official:
             skipped["没有可识别的官方结果"] += 1
             continue
-        parsed.append(BacktestRow(number, student, _row_input(row, cols), official))
+        score_input, waived = _row_input(row, cols)
+        parsed.append(BacktestRow(number, student, score_input, official, waived))
     skeleton = BacktestResult(
         rows=len(rows) - 1,
         students=len(parsed),
@@ -258,6 +274,7 @@ def parse_table(
         stats={},
         differences=[],
         rounded_officials=sum(o.rounded for r in parsed for o in r.official.values()),
+        waived=sum(r.waived for r in parsed),
     )
     return parsed, skeleton
 
@@ -287,6 +304,7 @@ def run(rows: list[BacktestRow], rules: RuleSet, skeleton: BacktestResult) -> Ba
         "intermediate": replace(
             rules, final=replace(rules.final, intermediate_decimal_places=MAX_PLACES)
         ),
+        "truncate": replace(rules, final=replace(rules.final, rounding="truncate")),
     }
     stats = {name: FieldStat() for name in RESULT_FIELDS}
     differences: list[Difference] = []
@@ -310,6 +328,8 @@ def run(rows: list[BacktestRow], rules: RuleSet, skeleton: BacktestResult) -> Ba
             exact = _exact(results["v1"], result_field)
             if computed["intermediate"] == official.value:
                 category = "intermediate"
+            elif computed["truncate"] == official.value:
+                category = "truncate"
             elif (
                 exact is not None
                 and v1 is not None
@@ -335,7 +355,7 @@ def run(rows: list[BacktestRow], rules: RuleSet, skeleton: BacktestResult) -> Ba
 
 
 def details_csv(result: BacktestResult) -> str:
-    """逐条差异明细（含学号与分数），只能保存在本机 data/ 目录，不得提交或写进报告。"""
+    """逐条差异明细（含学号与分数），只能保存在本机 data/ 或 real_data/，不得提交或写进报告。"""
     buffer = io.StringIO()
     writer = csv.writer(buffer)
     writer.writerow(
@@ -359,13 +379,19 @@ def render_report(result: BacktestResult, *, label: str, rules: RuleSet, date: s
     lines = [
         f"# 回溯测试报告（{date}）",
         "",
-        f"- 数据：{label}。明细只保存在本机 `data/` 目录，不入库（CLAUDE.md §11）。",
+        f"- 数据：{label}。明细只保存在本机 `data/` 或 `real_data/` 目录，"
+        "不入库（CLAUDE.md §11）。",
         f"- 规则：{rules.id} {rules.version}；比较精度：按官方结果的小数位数（最多 4 位）。",
         f"- 样本：表格 {result.rows} 行，参与比对 {result.students} 名学生。",
     ]
     if result.skipped:
         reasons = "；".join(f"{k} {v} 行" for k, v in sorted(result.skipped.items()))
         lines.append(f"- 跳过：{reasons}。")
+    if result.waived:
+        lines.append(
+            f"- 有 {result.waived} 名学生的综合素质写“放弃”，按 0 分核算"
+            "（学院导出表的做法，见 docs/rules-issues.md R-010）。"
+        )
     if result.rounded_officials:
         lines.append(
             f"- 有 {result.rounded_officials} 个官方值超过 4 位小数"

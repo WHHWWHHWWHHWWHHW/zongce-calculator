@@ -96,6 +96,10 @@
       "description": "等价于 JavaScript Math.round：floor(x + 0.5)，.5 一律向正无穷进位；对非负数即通常的四舍五入",
       "const": "js_math_round"
     },
+    "truncate": {
+      "description": "多余的小数位直接截去（向 0 取整，同 Excel TRUNC）；学院导出表的实际做法，见 docs/rules-issues.md R-011",
+      "const": "truncate"
+    },
     "rangeRule": {
       "type": "object",
       "additionalProperties": false,
@@ -125,7 +129,10 @@
           "minimum": 0,
           "maximum": 10
         },
-        "rounding": { "$ref": "#/$defs/jsMathRound" },
+        "rounding": {
+          "description": "最终结果的舍入方式",
+          "oneOf": [{ "$ref": "#/$defs/jsMathRound" }, { "$ref": "#/$defs/truncate" }]
+        },
         "source": { "$ref": "#/$defs/source" }
       }
     },

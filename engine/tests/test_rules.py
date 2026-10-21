@@ -90,6 +90,7 @@ def _mutate(data: dict[str, Any], path: tuple[str | int, ...], value: object) ->
         (("final", "intermediate_decimal_places"), "4", "final.intermediate_decimal_places"),
         (("final", "intermediate_decimal_places"), 11, "final.intermediate_decimal_places"),
         (("final", "rounding"), "half_even", "final.rounding"),
+        (("moral", "trim", "rounding"), "truncate", "moral.trim.rounding"),
         (("final", "quality_divisor"), "0", "final.quality_divisor"),
         (("final", "id"), "Final!", "final.id"),
         (("final", "id"), 3, "final.id"),
@@ -136,3 +137,16 @@ def test_intermediate_places_optional(
     data = _mutate(rules_data, ("final", "intermediate_decimal_places"), None)
     assert RuleSet.from_dict(data).final.intermediate_decimal_places is None
     jsonschema.validate(data, schema_data)
+
+
+def test_final_rounding_truncate_allowed(
+    rules_data: dict[str, Any], schema_data: dict[str, Any]
+) -> None:
+    # R-011：学院导出表对最终结果截断而非四舍五入。v1 仍为 js_math_round
+    assert RuleSet.from_dict(rules_data).final.rounding == "js_math_round"
+    data = _mutate(rules_data, ("final", "rounding"), "truncate")
+    assert RuleSet.from_dict(data).final.rounding == "truncate"
+    jsonschema.validate(data, schema_data)
+    trim = _mutate(rules_data, ("moral", "trim", "rounding"), "truncate")
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(trim, schema_data)

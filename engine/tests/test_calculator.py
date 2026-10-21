@@ -181,6 +181,16 @@ def test_exact_half_rounds_up_unlike_legacy_float(rules: RuleSet) -> None:
     assert str(result.final_score) == "3.4709"
 
 
+def test_truncate_variant(rules: RuleSet) -> None:
+    # R-011：最终结果截去第 4 位以后的小数（学院导出表的实际做法）
+    variant = replace(rules, final=replace(rules.final, rounding="truncate"))
+    score_input = ScoreInput(quality_mode="direct", gpa=D("4.6278"))  # 精确值 3.47085
+    assert str(calculate(score_input, rules).final_score) == "3.4709"
+    assert str(calculate(score_input, variant).final_score) == "3.4708"
+    whole = ScoreInput(quality_mode="direct", gpa=D("4"), quality_direct=D("80"))
+    assert str(calculate(whole, variant).final_score) == "4.0000"
+
+
 def test_intermediate_rounding_variant(rules: RuleSet) -> None:
     # R-005 备选口径：各项中间值也舍入到 4 位。v1（legacy）只舍入最终结果
     variant = replace(rules, final=replace(rules.final, intermediate_decimal_places=4))

@@ -24,6 +24,8 @@ _DECIMAL = re.compile(r"-?(0|[1-9][0-9]*)(\.[0-9]+)?")
 _RULE_ID = re.compile(r"[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*")
 _VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 _JS_MATH_ROUND = "js_math_round"
+_TRUNCATE = "truncate"
+FinalRounding = Literal["js_math_round", "truncate"]
 
 
 class RuleError(ValueError):
@@ -65,6 +67,9 @@ class FinalRule:
     # 各项中间值（分项得分与小计）舍入到的小数位数；None 表示不舍入、只舍入最终结果（legacy 口径）。
     # 细则正文第六条“各项成绩精确到小数点后 4 位数”的另一种读法，见 docs/rules-issues.md R-005。
     intermediate_decimal_places: int | None = None
+    # 最终结果的舍入方式：js_math_round（四舍五入，legacy 与办法原文）或 truncate（截去多余位数，
+    # 学院导出表的实际做法，见 docs/rules-issues.md R-011）。
+    rounding: FinalRounding = "js_math_round"
 
 
 @dataclass(frozen=True, slots=True)
@@ -273,10 +278,12 @@ def _int(obj: Mapping[str, object], key: str, path: str, low: int, high: int) ->
     return value
 
 
-def _rounding(obj: Mapping[str, object], path: str) -> None:
+def _rounding(obj: Mapping[str, object], path: str, *, final: bool = False) -> FinalRounding:
     value = _get(obj, "rounding", f"{path}.rounding")
-    if value != _JS_MATH_ROUND:
-        raise RuleError(f"{path}.rounding: 目前只支持 {_JS_MATH_ROUND!r}，实际为 {value!r}")
+    allowed = (_JS_MATH_ROUND, _TRUNCATE) if final else (_JS_MATH_ROUND,)
+    if value not in allowed:
+        raise RuleError(f"{path}.rounding: 只支持 {' / '.join(allowed)}，实际为 {value!r}")
+    return cast(FinalRounding, value)
 
 
 def _list(obj: Mapping[str, object], key: str, path: str) -> list[Mapping[str, object]]:
@@ -313,7 +320,7 @@ def _range(obj: Mapping[str, object], path: str) -> RangeRule:
 
 def _final(obj: Mapping[str, object]) -> FinalRule:
     path = "final"
-    _rounding(obj, path)
+    rounding = _rounding(obj, path, final=True)
     divisor = _dec(obj, "quality_divisor", path)
     if divisor <= 0:
         raise RuleError(f"{path}.quality_divisor: 必须大于 0")
@@ -330,6 +337,7 @@ def _final(obj: Mapping[str, object]) -> FinalRule:
             if obj.get("intermediate_decimal_places") is None
             else _int(obj, "intermediate_decimal_places", path, 0, 10)
         ),
+        rounding=rounding,
     )
 
 

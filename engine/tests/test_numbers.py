@@ -4,7 +4,7 @@ from decimal import Decimal as D
 
 import pytest
 
-from zongce_engine.numbers import clamp, format_score, js_round, round_js, trimmed_mean
+from zongce_engine.numbers import clamp, format_score, js_round, round_js, trimmed_mean, truncate
 
 
 @pytest.mark.parametrize(
@@ -39,6 +39,19 @@ def test_js_round_matches_math_round(value: str, expected: str) -> None:
 def test_round_js(value: str, places: int, expected: str) -> None:
     result = round_js(D(value), places)
     assert str(result) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "places", "expected"),
+    [
+        ("3.47085", 4, "3.4708"),
+        ("3.47089999", 4, "3.4708"),
+        ("4.1", 4, "4.1000"),
+        ("-1.00009", 4, "-1.0000"),  # 向 0 截断
+    ],
+)
+def test_truncate(value: str, places: int, expected: str) -> None:
+    assert str(truncate(D(value), places)) == expected
 
 
 def test_clamp() -> None:

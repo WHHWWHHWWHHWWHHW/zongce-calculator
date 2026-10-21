@@ -5,7 +5,7 @@ from dataclasses import replace
 from decimal import Decimal, localcontext
 
 from .models import ItemResult, MoralValue, PeerRatings, ScoreInput, ScoreResult
-from .numbers import ZERO, clamp, round_js, trimmed_mean
+from .numbers import ZERO, clamp, round_js, trimmed_mean, truncate
 from .rules import BasicRule, LinearCappedRule, MoralItemRule, RuleSet, TrimRule
 
 # 计算精度（有效数字位数）。只有去极值平均的除法可能是无限小数；
@@ -137,7 +137,8 @@ def _calculate(score_input: ScoreInput, rules: RuleSet) -> ScoreResult:
     final_raw = (
         quality.score / final.quality_divisor * final.quality_weight + gpa * final.academic_weight
     )
-    final_score = round_js(final_raw, final.decimal_places)
+    final_round = truncate if final.rounding == "truncate" else round_js
+    final_score = final_round(final_raw, final.decimal_places)
     items.append(ItemResult(final.id, final_score, raw=final_raw))
 
     return ScoreResult(
