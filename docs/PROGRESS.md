@@ -2,6 +2,38 @@
 
 > 每次会话结束时在顶部追加一条（CLAUDE.md §9.3）。
 
+## 2026-10-13 · M1 后端 MVP（无人值守，负责人授权）
+
+**完成**（分支 `m1/backend`，基于 `m0/rule-engine`）
+
+- `backend/`（`zongce_backend`）：FastAPI + SQLAlchemy 2 + Alembic + Pydantic v2；13 张表，迁移 `0001`；统一错误结构。
+- 认证与权限：管理员批量导入账号（随机初始密码），首次登录强制改密；JWT；学生 / 班级审核员 / 学院管理员三种角色。
+- 能力分申报：增删改查与提交流程；`rules/ability-catalog-xxgc-2020.json` 按细则附件 2 转录（30 个项目，151 个选项，每项注明出处）；建议分、兼职系数、多人分配、分组封顶。
+- 证明材料：按文件头识别 PDF/PNG/JPEG，限制大小与数量，随机名存储。
+- 审核：通过 / 改分 / 驳回，理由必填；审计日志覆盖全部分数变更。
+- 学院成绩表导入（表头关键词沿用 legacy）、单项修改、核算（调用 zongce_engine）、`/api/v1/score/preview`。
+- 班级排名（同分并列）、Excel 导出、班级公示（默认 3 天）、异议提交与处理。
+- 命令行 `zongce`：init-db / create-admin / load-rules / serve / export-openapi；`docs/本机运行.md`；`deploy/.env.example`；`docs/api/openapi.json`。
+- CI：改为调用 `scripts/check.sh`；新增 MySQL 8 迁移任务。ADR 0003。
+
+**验证**（本地，Python 3.12.14）
+
+- `bash scripts/check.sh`：ruff、`mypy --strict`（68 个文件）通过；引擎 + 对拍 129 passed，分支覆盖率 100%；后端 50 passed，覆盖率 98.46%。
+- 端到端：导入 G1 数据并审核通过 38 分能力分申报后核算，综测成绩 3.7252，思想品德 27.6250，综合能力 51.2500，与 G1 一致。
+- 本机实测：init-db → create-admin → load-rules → serve → 登录 → 建学年 → 预估（3.7252）→ 打开 /api/v1/docs（HTTP 200）。
+- MySQL 8：**未验证**（本机没有 MySQL），由 CI 的 mysql 任务验证。
+
+**下一步**
+
+- 负责人确认 ADR 0003 第 6–8 条；审阅 `docs/claude-md-proposals.md`。
+- GitHub 推送权限打通后推送分支，开 PR 草稿，确认 CI（含 MySQL 任务）通过。
+- M2 前端：等负责人选定组件库（CLAUDE.md §13 第 7 项）。
+
+**阻塞 / 待决定**
+
+- GitHub 推送：Claude 关联的 GitHub 账号暂无本仓库推送权限。
+- CLAUDE.md §13 第 6、7 项；R-001～R-005 纳入哪个规则版本。
+
 ## 2026-10-12 · M0 规则引擎
 
 **完成**

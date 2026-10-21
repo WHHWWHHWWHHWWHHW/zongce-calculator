@@ -1,0 +1,352 @@
+{
+  "id": "xxgc-2020-ability",
+  "title": "信息科学与工程学院综合能力表现评价细则（试行）能力分申报目录",
+  "source_document": "济大信息院字〔2020〕23 号 附件 2《济南大学信息科学与工程学院综合能力表现评价细则（试行）》第二条",
+  "notes": "本目录只给出“建议分”，最终得分由班级综合测评认定小组审核确定（附件 2 第二条）。原文中需酌情、需按名次或另有判断的情形一律为人工给分（manual）。多人项目按“附加分值标准×(N−M+1)/(1+2+…+N)”分配；建议分按办法正文第六条四舍五入保留 4 位小数。本标准未明确规定加分之情形，不得擅自加分（附件 2 第三条）。",
+  "concurrent_coefficients": ["1", "0.5", "0.25", "0.125"],
+  "caps": [
+    { "code": "literary", "name": "文学作品、新闻报道", "max": "5", "source": "附件 2 第二条之四 2：每学年累加不超过 5 分" },
+    { "code": "campus_participation", "name": "校园文化活动参与分", "max": "1", "source": "附件 2 第二条之五 2(4)：参与分每学年附加累计不超过 1 分" },
+    { "code": "public_service_extra", "name": "公益劳动附加分", "max": "5", "source": "附件 2 第二条之六：此项得分最高不超过 5 分" },
+    { "code": "dorm", "name": "宿舍成绩能力分", "max": "10", "source": "附件 2 第二条之七 3：此项得分最高不超过 10 分" }
+  ],
+  "items": [
+    {
+      "code": "honor_national", "group": "评先树优", "name": "国家级荣誉称号", "scoring": "fixed",
+      "options": [{ "code": "national", "name": "国家级荣誉称号（全国优秀学生干部、全国三好学生、青少年科技创新奖、中国大学生年度人物、大学生自强之星等）", "score": "20" }],
+      "notes": "同一荣誉称号取最高加分项，不重复加分。",
+      "source": "附件 2 第二条之一 1：国家级荣誉称号加 20 分；之一 5"
+    },
+    {
+      "code": "honor_provincial", "group": "评先树优", "name": "省级荣誉称号", "scoring": "fixed",
+      "options": [{ "code": "provincial", "name": "省级荣誉称号（山东高校十大优秀学生、山东省优秀学生、山东省优秀学生干部、山东省优秀共青团员等）", "score": "10" }],
+      "notes": "同一荣誉称号取最高加分项，不重复加分。",
+      "source": "附件 2 第二条之一 2：省级荣誉称号加 10 分；之一 5"
+    },
+    {
+      "code": "honor_university", "group": "评先树优", "name": "校级荣誉称号", "scoring": "fixed",
+      "options": [
+        { "code": "top_ten", "name": "济南大学十佳团员、济南大学十佳志愿者", "score": "5" },
+        { "code": "excellent", "name": "济南大学优秀学生、优秀学生干部、优秀团干部、优秀团员", "score": "3" },
+        { "code": "other", "name": "济南大学优秀青年志愿者、社会实践优秀学生、社会工作先进个人、优秀心灵使者、优秀教学信息员", "score": "2" }
+      ],
+      "notes": "同一荣誉称号取最高加分项，不重复加分。",
+      "source": "附件 2 第二条之一 3；之一 5"
+    },
+    {
+      "code": "honor_college", "group": "评先树优", "name": "院级荣誉称号", "scoring": "fixed",
+      "options": [{ "code": "college", "name": "院级荣誉称号", "score": "1" }],
+      "source": "附件 2 第二条之一 4：院级荣誉称号加 1 分"
+    },
+    {
+      "code": "honor_other", "group": "评先树优", "name": "其他校外荣誉称号", "scoring": "manual",
+      "notes": "由学院学生综合测评评议小组商定酌情加分。",
+      "source": "附件 2 第二条之一 5"
+    },
+    {
+      "code": "cadre", "group": "社会工作", "name": "担任主要学生干部", "scoring": "fixed", "concurrent": true,
+      "options": [
+        { "code": "presidium", "name": "学生组织主席团成员", "score": "3" },
+        { "code": "minister", "name": "部长、副部长、学生党支部支委、班长、团支书", "score": "2" },
+        { "code": "member", "name": "班委和其他学生会成员", "score": "1" }
+      ],
+      "notes": "身兼多个职务的，按职位高低分别乘以 1、1/2、1/4、1/8 系数后相加（每个职务单独申报，并填写其职位高低排序）。任职期间不能很好履职者不加分。",
+      "source": "附件 2 第二条之二 1"
+    },
+    {
+      "code": "good_deeds", "group": "社会工作", "name": "好人好事受通报表扬或媒体报道", "scoring": "fixed",
+      "options": [
+        { "code": "college", "name": "院级通报表扬", "score": "2" },
+        { "code": "university", "name": "校级通报表扬", "score": "5" },
+        { "code": "media", "name": "受到市级、省级媒体报道表扬", "score": "10" }
+      ],
+      "notes": "同一事迹被多次报道者，取最高加分项，不重复加分。",
+      "source": "附件 2 第二条之二 2"
+    },
+    {
+      "code": "outstanding_deeds", "group": "社会工作", "name": "其他突出事迹受到学校表彰", "scoring": "manual",
+      "min_score": "1", "max_score": "5",
+      "notes": "视情况加 1–5 分。",
+      "source": "附件 2 第二条之二 2"
+    },
+    {
+      "code": "practice_report", "group": "社会实践", "name": "社会实践报告获奖", "scoring": "fixed",
+      "options": [
+        { "code": "provincial_1", "name": "省级一等奖", "score": "6" },
+        { "code": "provincial_2", "name": "省级二等奖", "score": "4" },
+        { "code": "provincial_3", "name": "省级三等奖", "score": "3" },
+        { "code": "university_1", "name": "校级一等奖", "score": "3" },
+        { "code": "university_2", "name": "校级二等奖", "score": "2" },
+        { "code": "university_3", "name": "校级三等奖", "score": "1" },
+        { "code": "college_a", "name": "院级一等奖（A）", "score": "1" },
+        { "code": "college_b", "name": "院级二等奖（B）", "score": "0.8" },
+        { "code": "college_c", "name": "院级三等奖（C）", "score": "0.5" }
+      ],
+      "source": "附件 2 第二条之三 1–3"
+    },
+    {
+      "code": "volunteer_contest", "group": "社会实践", "name": "全国大学生青年志愿服务项目大赛", "scoring": "fixed", "team": true,
+      "options": [
+        { "code": "national_1", "name": "国家级一等奖（含金奖）及以上", "score": "30" },
+        { "code": "national_2", "name": "国家级二等奖（含银奖）", "score": "20" },
+        { "code": "national_3", "name": "国家级三等奖（含铜奖）", "score": "15" },
+        { "code": "provincial_1", "name": "省级一等奖（含金奖）及以上", "score": "15" },
+        { "code": "provincial_2", "name": "省级二等奖（含银奖）", "score": "10" },
+        { "code": "provincial_3", "name": "省级三等奖（含铜奖）", "score": "8" },
+        { "code": "university_1", "name": "校级一等奖（含金奖）及以上", "score": "8" },
+        { "code": "university_2", "name": "校级二等奖（含银奖）", "score": "6" },
+        { "code": "university_3", "name": "校级三等奖（含铜奖）", "score": "4" }
+      ],
+      "notes": "参照创新创业能力分二类赛事项目加分。原文提到的市级奖项在二类赛事表中没有对应分值，由认定小组酌情处理。",
+      "source": "附件 2 第二条之三 4；之四 3(1) 二类赛事"
+    },
+    {
+      "code": "paper_science", "group": "创新创业", "name": "发表科研论文（理工类）", "scoring": "fixed", "team": true,
+      "options": [
+        { "code": "sci", "name": "被 SCI 收录", "score": "25" },
+        { "code": "ei", "name": "被 EI 收录", "score": "15" },
+        { "code": "istp", "name": "被 ISTP 收录", "score": "10" },
+        { "code": "class_one", "name": "学校认定的一类刊物或国际会议收录", "score": "4" }
+      ],
+      "notes": "作者署名单位为济南大学；署名除老师外排名，按作者排序递减分配（N 为作者总人数，M 为所在位次）。",
+      "source": "附件 2 第二条之四 1（理工类）"
+    },
+    {
+      "code": "paper_social", "group": "创新创业", "name": "发表科研论文（社科类）", "scoring": "fixed", "team": true,
+      "options": [
+        { "code": "ssci", "name": "被 SSCI、AHCI、ISSHP 收录", "score": "25" },
+        { "code": "xinhua_full", "name": "被《新华文摘》全文转载", "score": "15" },
+        { "code": "digest", "name": "被《新华文摘》《中国社科文摘》《高校文科学报文摘》摘要论点的论文", "score": "10" },
+        { "code": "class_one", "name": "学校认定的一类刊物或国际会议收录", "score": "4" }
+      ],
+      "notes": "作者署名单位为济南大学；署名除老师外排名，按作者排序递减分配。",
+      "source": "附件 2 第二条之四 1（社科类）"
+    },
+    {
+      "code": "patent", "group": "创新创业", "name": "专利 / 软件著作权", "scoring": "fixed", "team": true,
+      "options": [
+        { "code": "invention", "name": "国家发明专利", "score": "25" },
+        { "code": "utility_or_software", "name": "实用新型或软件著作权", "score": "15" },
+        { "code": "design", "name": "外观设计专利", "score": "10" }
+      ],
+      "notes": "专利拥有者署名单位须是济南大学。多人完成的按完成人位次分配。",
+      "source": "附件 2 第二条之四 1（专利类）；之四“注：多人完成的项目”"
+    },
+    {
+      "code": "literary", "group": "创新创业", "name": "发表文学作品、新闻报道", "scoring": "fixed", "cap_group": "literary",
+      "options": [
+        { "code": "national", "name": "国家级杂志报刊、新闻报道（每篇）", "score": "5" },
+        { "code": "provincial", "name": "省市级杂志报刊、新闻报道（每篇）", "score": "2.5" },
+        { "code": "university", "name": "校级杂志报刊、新闻报道（每篇）", "score": "1" },
+        { "code": "campus_news", "name": "学校新闻网、济南大学校报（每篇）", "score": "1" }
+      ],
+      "notes": "每篇单独申报；同一篇文章取最高加分项，不重复加分；每学年累加不超过 5 分。",
+      "source": "附件 2 第二条之四 2"
+    },
+    {
+      "code": "competition", "group": "创新创业", "name": "专业类或学术性竞赛", "scoring": "fixed", "team": true,
+      "options": [
+        { "code": "c1_national_1", "name": "一类赛事 国家级 一等奖（含金奖）及以上", "score": "40" },
+        { "code": "c1_national_2", "name": "一类赛事 国家级 二等奖（含银奖）", "score": "30" },
+        { "code": "c1_national_3", "name": "一类赛事 国家级 三等奖（含铜奖）", "score": "20" },
+        { "code": "c1_provincial_1", "name": "一类赛事 省级 一等奖（含金奖）及以上", "score": "20" },
+        { "code": "c1_provincial_2", "name": "一类赛事 省级 二等奖（含银奖）", "score": "15" },
+        { "code": "c1_provincial_3", "name": "一类赛事 省级 三等奖（含铜奖）", "score": "10" },
+        { "code": "c1_university_1", "name": "一类赛事 校级 一等奖（含金奖）及以上", "score": "10" },
+        { "code": "c1_university_2", "name": "一类赛事 校级 二等奖（含银奖）", "score": "8" },
+        { "code": "c1_university_3", "name": "一类赛事 校级 三等奖（含铜奖）", "score": "6" },
+        { "code": "c2_national_1", "name": "二类赛事 国家级 一等奖（含金奖）及以上", "score": "30" },
+        { "code": "c2_national_2", "name": "二类赛事 国家级 二等奖（含银奖）", "score": "20" },
+        { "code": "c2_national_3", "name": "二类赛事 国家级 三等奖（含铜奖）", "score": "15" },
+        { "code": "c2_provincial_1", "name": "二类赛事 省级 一等奖（含金奖）及以上", "score": "15" },
+        { "code": "c2_provincial_2", "name": "二类赛事 省级 二等奖（含银奖）", "score": "10" },
+        { "code": "c2_provincial_3", "name": "二类赛事 省级 三等奖（含铜奖）", "score": "8" },
+        { "code": "c2_university_1", "name": "二类赛事 校级 一等奖（含金奖）及以上", "score": "8" },
+        { "code": "c2_university_2", "name": "二类赛事 校级 二等奖（含银奖）", "score": "6" },
+        { "code": "c2_university_3", "name": "二类赛事 校级 三等奖（含铜奖）", "score": "4" },
+        { "code": "c3_national_1", "name": "三类赛事 国家级 一等奖（含金奖）及以上", "score": "15" },
+        { "code": "c3_national_2", "name": "三类赛事 国家级 二等奖（含银奖）", "score": "10" },
+        { "code": "c3_national_3", "name": "三类赛事 国家级 三等奖（含铜奖）", "score": "8" },
+        { "code": "c3_provincial_1", "name": "三类赛事 省级 一等奖（含金奖）及以上", "score": "8" },
+        { "code": "c3_provincial_2", "name": "三类赛事 省级 二等奖（含银奖）", "score": "6" },
+        { "code": "c3_provincial_3", "name": "三类赛事 省级 三等奖（含铜奖）", "score": "4" },
+        { "code": "college_1", "name": "院级学科类竞赛 一等奖", "score": "4" },
+        { "code": "college_2", "name": "院级学科类竞赛 二等奖", "score": "3" },
+        { "code": "college_3", "name": "院级学科类竞赛 三等奖", "score": "2" },
+        { "code": "c12_merit", "name": "一类、二类赛事 省级及以上 优秀奖、完成奖", "score": "2" }
+      ],
+      "notes": "赛事类别以学院团委当年公布的认定结果为准。学年内参加不同级别的同一赛事按最高加分值加分；同一作品参赛多次取最高加分项，不重复加分。多人完成的按完成人位次分配。",
+      "source": "附件 2 第二条之四 3(1)–(3)、之四 4、之四“注”"
+    },
+    {
+      "code": "innovation_project", "group": "创新创业", "name": "大学生创新创业训练计划、科技立项、SRT", "scoring": "fixed", "team": true,
+      "options": [
+        { "code": "national", "name": "国家大学生创新创业训练计划", "score": "20" },
+        { "code": "provincial", "name": "省级大学生创新创业训练计划", "score": "10" },
+        { "code": "sci_tech", "name": "科技立项", "score": "8" },
+        { "code": "srt", "name": "SRT 结题", "score": "5" }
+      ],
+      "notes": "多人完成的按完成人位次分配。",
+      "source": "附件 2 第二条之四 3(1) 表；之四“注”"
+    },
+    {
+      "code": "elective_course", "group": "创新创业", "name": "通选课附加分", "scoring": "fixed",
+      "options": [
+        { "code": "above_90", "name": "加权平均成绩 90 分以上", "score": "2.5" },
+        { "code": "above_80", "name": "加权平均成绩 80 分以上", "score": "2" },
+        { "code": "above_70", "name": "加权平均成绩 70 分以上", "score": "1.5" },
+        { "code": "above_60", "name": "加权平均成绩 60 分以上", "score": "1" }
+      ],
+      "notes": "依据学工处的相关办法执行。",
+      "source": "附件 2 第二条之四 5"
+    },
+    {
+      "code": "national_arts_sports", "group": "文体活动", "name": "全国大学生文娱体育竞赛获奖", "scoring": "manual",
+      "min_score": "10", "max_score": "25",
+      "notes": "根据名次加 10–20 分，破纪录加 25 分。",
+      "source": "附件 2 第二条之五 1(1)"
+    },
+    {
+      "code": "provincial_games", "group": "文体活动", "name": "省大运会得分", "scoring": "per_unit",
+      "unit_name": "分（省大运会所得分数）", "unit_score": "1",
+      "source": "附件 2 第二条之五 1(1)：省大运会每得一分加 1 分"
+    },
+    {
+      "code": "university_games", "group": "文体活动", "name": "校运动会获奖", "scoring": "fixed",
+      "options": [
+        { "code": "individual_1", "name": "个人项目 第一名", "score": "6" },
+        { "code": "individual_2", "name": "个人项目 第二名", "score": "5" },
+        { "code": "individual_3", "name": "个人项目 第三名", "score": "4" },
+        { "code": "individual_4", "name": "个人项目 第四名", "score": "3" },
+        { "code": "individual_5", "name": "个人项目 第五名", "score": "2" },
+        { "code": "individual_6", "name": "个人项目 第六名", "score": "1" },
+        { "code": "individual_7", "name": "个人项目 第七名", "score": "0.8" },
+        { "code": "individual_8", "name": "个人项目 第八名", "score": "0.6" },
+        { "code": "relay_1", "name": "接力（每人）第一名", "score": "3" },
+        { "code": "relay_2", "name": "接力（每人）第二名", "score": "2.5" },
+        { "code": "relay_3", "name": "接力（每人）第三名", "score": "2" },
+        { "code": "relay_4", "name": "接力（每人）第四名", "score": "1.5" },
+        { "code": "relay_5", "name": "接力（每人）第五名", "score": "1" },
+        { "code": "relay_6", "name": "接力（每人）第六名", "score": "0.8" },
+        { "code": "relay_7", "name": "接力（每人）第七名", "score": "0.4" },
+        { "code": "relay_8", "name": "接力（每人）第八名", "score": "0.3" }
+      ],
+      "notes": "同一项目校院均有参加取最高加分项，不重复加分；不同项目可累加。",
+      "source": "附件 2 第二条之五 1(2)、1(6)"
+    },
+    {
+      "code": "college_games", "group": "文体活动", "name": "院运动会获奖", "scoring": "fixed",
+      "options": [
+        { "code": "individual_1", "name": "个人项目 第一名", "score": "2" },
+        { "code": "individual_2", "name": "个人项目 第二名", "score": "1.5" },
+        { "code": "individual_3", "name": "个人项目 第三名", "score": "1" },
+        { "code": "individual_4_8", "name": "个人项目 第四–八名", "score": "0.5" },
+        { "code": "relay_1", "name": "接力（每人）第一名", "score": "1" },
+        { "code": "relay_2", "name": "接力（每人）第二名", "score": "0.5" },
+        { "code": "relay_3", "name": "接力（每人）第三名", "score": "0.3" },
+        { "code": "relay_4_8", "name": "接力（每人）第四–八名", "score": "0.2" }
+      ],
+      "notes": "同一项目校院均有参加取最高加分项，不重复加分；不同项目可累加。",
+      "source": "附件 2 第二条之五 1(3)、1(6)"
+    },
+    {
+      "code": "ball_games", "group": "文体活动", "name": "篮球赛、足球赛、排球赛、羽毛球赛等获奖", "scoring": "fixed",
+      "options": [
+        { "code": "rank_1", "name": "第一名（每人）", "score": "3" },
+        { "code": "rank_2", "name": "第二名（每人）", "score": "2.5" },
+        { "code": "rank_3", "name": "第三名（每人）", "score": "2" },
+        { "code": "rank_4", "name": "第四名（每人）", "score": "1.5" },
+        { "code": "rank_5", "name": "第五名（每人）", "score": "1" },
+        { "code": "rank_6", "name": "第六名（每人）", "score": "0.5" },
+        { "code": "rank_7", "name": "第七名（每人）", "score": "0.4" },
+        { "code": "rank_8", "name": "第八名（每人）", "score": "0.3" }
+      ],
+      "source": "附件 2 第二条之五 1(4)"
+    },
+    {
+      "code": "december_ninth_run", "group": "文体活动", "name": "参加并完成“一二·九”长跑", "scoring": "fixed",
+      "options": [
+        { "code": "first", "name": "一等奖", "score": "3" },
+        { "code": "second", "name": "二等奖", "score": "2.5" },
+        { "code": "third", "name": "三等奖", "score": "2" },
+        { "code": "spirit", "name": "精神文明奖", "score": "1.5" }
+      ],
+      "source": "附件 2 第二条之五 1(5)"
+    },
+    {
+      "code": "campus_culture_award", "group": "文体活动", "name": "个人、集体参加其他校园文化活动获奖", "scoring": "fixed",
+      "options": [
+        { "code": "national_1", "name": "国家级 一等奖", "score": "20" },
+        { "code": "national_2", "name": "国家级 二等奖", "score": "15" },
+        { "code": "national_3", "name": "国家级 三等奖", "score": "10" },
+        { "code": "national_merit", "name": "国家级 优秀奖", "score": "4" },
+        { "code": "provincial_1", "name": "省市级 一等奖", "score": "8" },
+        { "code": "provincial_2", "name": "省市级 二等奖", "score": "6" },
+        { "code": "provincial_3", "name": "省市级 三等奖", "score": "4" },
+        { "code": "provincial_merit", "name": "省市级 优秀奖", "score": "2" },
+        { "code": "university_1", "name": "校级 一等奖", "score": "3" },
+        { "code": "university_2", "name": "校级 二等奖", "score": "2.5" },
+        { "code": "university_3", "name": "校级 三等奖", "score": "2" },
+        { "code": "university_merit", "name": "校级 优秀奖", "score": "1.5" },
+        { "code": "college_1", "name": "院级 一等奖", "score": "2" },
+        { "code": "college_2", "name": "院级 二等奖", "score": "1.5" },
+        { "code": "college_3", "name": "院级 三等奖", "score": "1" },
+        { "code": "college_merit", "name": "院级 优秀奖", "score": "0.5" },
+        { "code": "best_debater_university", "name": "辩论赛最佳辩手 校级", "score": "3" },
+        { "code": "best_debater_college", "name": "辩论赛最佳辩手 院级", "score": "1.5" }
+      ],
+      "notes": "活动需为校级及以上部门或信息学院组织，个人参加其他组织方组织的活动不在加分范围内。",
+      "source": "附件 2 第二条之五 2 及加分表、之五 5"
+    },
+    {
+      "code": "campus_show", "group": "文体活动", "name": "校运动会入场式方阵、校运动会观众、学院迎新晚会演出", "scoring": "fixed",
+      "options": [{ "code": "participant", "name": "参加者（每人，按院级优秀奖）", "score": "0.5" }],
+      "source": "附件 2 第二条之五 3"
+    },
+    {
+      "code": "campus_participation", "group": "文体活动", "name": "积极参加院、校级校园文化活动未获奖", "scoring": "per_unit", "cap_group": "campus_participation",
+      "unit_name": "项（名单以院学生会公示为准）", "unit_score": "0.2",
+      "notes": "每参与一项附加 0.2 分，每学年附加累计不超过 1 分。",
+      "source": "附件 2 第二条之五 4"
+    },
+    {
+      "code": "public_service_extra", "group": "公益劳动", "name": "公益劳动附加分（基础分以外）", "scoring": "per_unit", "cap_group": "public_service_extra",
+      "unit_name": "次（基础分以外多完成的次数）", "unit_score": "0.5",
+      "notes": "“多完成”的起算基准待负责人确认（docs/rules-issues.md R-003）。",
+      "source": "附件 2 第二条之六：每多完成一次附加 0.5 分，此项得分最高不超过 5 分"
+    },
+    {
+      "code": "dorm_inspection", "group": "宿舍成绩", "name": "宿舍检查学年平均 90 分及以上", "scoring": "fixed", "cap_group": "dorm",
+      "options": [{ "code": "above_90", "name": "宿舍成员每人", "score": "2" }],
+      "source": "附件 2 第二条之七 1"
+    },
+    {
+      "code": "dorm_honor", "group": "宿舍成绩", "name": "优秀宿舍等荣誉称号", "scoring": "fixed", "cap_group": "dorm",
+      "options": [
+        { "code": "university", "name": "校级（每人）", "score": "2" },
+        { "code": "college", "name": "院级", "score": "1" }
+      ],
+      "notes": "同一项目评比，院校均有参加的取最高加分项，不重复加分。",
+      "source": "附件 2 第二条之七 2、3"
+    },
+    {
+      "code": "dorm_contest_award", "group": "宿舍成绩", "name": "宿舍评比获一、二、三等奖", "scoring": "fixed", "cap_group": "dorm",
+      "options": [
+        { "code": "national_1", "name": "国家级 一等奖", "score": "20" },
+        { "code": "national_2", "name": "国家级 二等奖", "score": "15" },
+        { "code": "national_3", "name": "国家级 三等奖", "score": "10" },
+        { "code": "provincial_1", "name": "省市级 一等奖", "score": "8" },
+        { "code": "provincial_2", "name": "省市级 二等奖", "score": "6" },
+        { "code": "provincial_3", "name": "省市级 三等奖", "score": "4" },
+        { "code": "university_1", "name": "校级 一等奖", "score": "3" },
+        { "code": "university_2", "name": "校级 二等奖", "score": "2.5" },
+        { "code": "university_3", "name": "校级 三等奖", "score": "2" },
+        { "code": "college_1", "name": "院级 一等奖", "score": "2" },
+        { "code": "college_2", "name": "院级 二等奖", "score": "1.5" },
+        { "code": "college_3", "name": "院级 三等奖", "score": "1" }
+      ],
+      "notes": "按“参加其他校园文化活动”的加分标准加分。",
+      "source": "附件 2 第二条之七 2：获得一、二、三等奖的，按照第二条之五 2 加分"
+    }
+  ]
+}

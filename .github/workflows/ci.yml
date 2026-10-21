@@ -13,8 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  engine:
-    name: 规则引擎（Python ${{ matrix.python }}）
+  checks:
+    name: 检查与测试（Python ${{ matrix.python }}）
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -45,17 +45,32 @@ jobs:
       - name: 安装 Python 依赖
         run: uv sync --frozen --python ${{ matrix.python }}
 
-      - name: ruff format
-        run: uv run --frozen ruff format --check .
+      - name: ruff / mypy --strict / 引擎（覆盖率 100% + 对拍）/ 后端（覆盖率 ≥ 80%）
+        run: bash scripts/check.sh
 
-      - name: ruff check
-        run: uv run --frozen ruff check .
-
-      - name: mypy --strict
-        run: uv run --frozen mypy --strict
-
-      - name: 校验规则文件 schema
-        run: uv run --frozen pytest engine/tests/test_rules.py -q
-
-      - name: 测试 + 分支覆盖率 100% + legacy 对拍（2000 组）
-        run: uv run --frozen pytest --cov --cov-report=term-missing
+  mysql:
+    name: 迁移与模型一致性（MySQL 8）
+    runs-on: ubuntu-24.04
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          # 仅用于 CI 中的一次性测试容器，不是任何环境的真实密码
+          MYSQL_ROOT_PASSWORD: ci-only
+          MYSQL_DATABASE: zongce_test
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci-only"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.13"
+          enable-cache: true
+      - name: 安装依赖（含 MySQL 驱动）
+        run: uv sync --frozen --python 3.12 --group mysql
+      - name: 在 MySQL 8 上升级 / 比对 / 降级
+        env:
+          ZONGCE_TEST_MYSQL_URL: mysql+pymysql://root:ci-only@127.0.0.1:3306/zongce_test
+        run: uv run --frozen pytest backend/tests/test_migrations.py -v
