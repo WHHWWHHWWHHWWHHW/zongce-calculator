@@ -125,8 +125,10 @@ const selectable = (row: Suggestion) =>
 </script>
 
 <template>
-  <section>
-    <h2>名单比对</h2>
+  <section class="page">
+    <div class="page-header">
+      <h2>名单比对</h2>
+    </div>
     <p class="muted">
       上传学院公布的获奖名单，与待审核的申报逐条比对：Excel / CSV
       名单按学号匹配；各部门的活动获奖名单（带文字的 PDF 或 TXT）按“班级 +
