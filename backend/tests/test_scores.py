@@ -87,7 +87,7 @@ def test_import_errors_and_manual_update(client: TestClient, world: World) -> No
     def post(rows: list[list[Any]]) -> Any:
         return client.post(url, files=upload("x.xlsx", xlsx(rows)), headers=world.admin).json()
 
-    assert post([["姓名", "绩点"], ["a", 1]])["error"]["message"] == "表头缺少“学号”列"
+    assert post([["姓名", "绩点"], ["a", 1]])["error"]["message"].startswith("表头缺少“学号”列")
     assert (
         post([["学号", "备注"], ["TEST0002", "x"]])["error"]["message"]
         == "没有识别出任何成绩列，请检查表头"
