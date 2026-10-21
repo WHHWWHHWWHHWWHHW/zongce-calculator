@@ -97,10 +97,11 @@ def seed_demo(settings: Settings, args: argparse.Namespace, password: str) -> No
 
 
 def _check_details_path(path: Path) -> None:
-    """明细含学号和分数（CLAUDE.md §11）：只能写到仓库的 data/ 目录（已被 git 忽略）或仓库以外。"""
+    """明细含学号和分数（CLAUDE.md §11）：只能写到仓库的 data/、real_data/（已被 git 忽略）或仓库以外。"""
     resolved = path.resolve()
-    if resolved.is_relative_to(REPO_ROOT) and not resolved.is_relative_to(REPO_ROOT / "data"):
-        sys.exit("明细含学号和分数，只能写到仓库的 data/ 目录或仓库以外")
+    allowed = (REPO_ROOT / "data", REPO_ROOT / "real_data")
+    if resolved.is_relative_to(REPO_ROOT) and not any(resolved.is_relative_to(a) for a in allowed):
+        sys.exit("明细含学号和分数，只能写到仓库的 data/ 或 real_data/ 目录，或仓库以外")
 
 
 def _official_overrides(items: list[str]) -> dict[str, str]:

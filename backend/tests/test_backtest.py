@@ -144,7 +144,7 @@ def test_cli_backtest(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> Non
     assert "TEST" not in report.read_text(encoding="utf-8")
     assert "TEST9005" in details.read_text(encoding="utf-8-sig")
 
-    with pytest.raises(SystemExit, match="data/ 目录"):
+    with pytest.raises(SystemExit, match="real_data/ 目录"):
         cli.main(["backtest", str(table), "--details", str(REPO_ROOT / "docs" / "x.csv")])
     bad = tmp_path / "bad.csv"
     bad.write_text("学号\n", encoding="utf-8")
