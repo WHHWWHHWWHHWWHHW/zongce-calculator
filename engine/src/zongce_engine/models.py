@@ -18,6 +18,7 @@ _DECIMAL_FIELDS = (
     "fitness_test",
     "dorm_check",
     "ability",
+    "moral_deduction",
 )
 _MORAL_FIELDS = ("political", "morality", "discipline", "integrity")
 
@@ -62,6 +63,7 @@ class ScoreInput:
     fitness_test: Decimal | None = None
     dorm_check: Decimal | None = None
     ability: Decimal | None = None
+    moral_deduction: Decimal | None = None  # 思想品德附减分合计（R-001），规则没有减分时不起作用
 
     def __post_init__(self) -> None:
         if self.quality_mode not in _QUALITY_MODES:
@@ -70,6 +72,8 @@ class ScoreInput:
             value = getattr(self, name)
             if value is not None:
                 _check_decimal(value, name)
+        if self.moral_deduction is not None and self.moral_deduction < 0:
+            raise ValueError(f"moral_deduction 不能为负数，实际为 {self.moral_deduction}")
         for name in _MORAL_FIELDS:
             value = getattr(self, name)
             if value is not None and not isinstance(value, PeerRatings):

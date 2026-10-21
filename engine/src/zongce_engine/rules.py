@@ -127,7 +127,38 @@ class ThresholdRule:
     source: str
 
 
-BasicRule = LinearCappedRule | ThresholdRule
+@dataclass(frozen=True, slots=True)
+class StepCappedRule:
+    """基础分（阶梯计分，R-004）：x 未达到 min_value（含空值）记 0 分；达到后，
+    得分 = min(floor(x ÷ step) × points_per_step, cap)，即全部积分都按阶梯计。负数记 0 分。"""
+
+    id: str
+    name: str
+    field: BasicField
+    step: Decimal
+    points_per_step: Decimal
+    cap: Decimal
+    min_value: Decimal
+    source: str
+
+
+BasicRule = LinearCappedRule | ThresholdRule | StepCappedRule
+
+
+@dataclass(frozen=True, slots=True)
+class DeductionRule:
+    """思想品德附减分（附件 1 第五、六条，R-001）：从各子项之和中扣除，再限制到 [min, max]。
+
+    - ``max``：扣分合计上限，``None`` 表示不设上限；
+    - ``floor_fields``：这些子项实际得分之和最多扣到 0（扣分不超过它们的得分之和），空表示不限制。
+    两项同时设置时取较小者。“最高不超过三项的总和 20 分”的读法待负责人确认，所以两项都做成参数。
+    """
+
+    id: str
+    name: str
+    max: Decimal | None
+    floor_fields: tuple[MoralField, ...]
+    source: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,6 +184,7 @@ class MoralRule:
     source: str
     trim: TrimRule
     items: tuple[MoralItemRule, ...]
+    deduction: DeductionRule | None = None  # v1 没有附减分（R-001）
 
 
 @dataclass(frozen=True, slots=True)
@@ -215,6 +247,7 @@ class RuleSet:
             self.moral,
             self.moral.trim,
             *self.moral.items,
+            *((self.moral.deduction,) if self.moral.deduction is not None else ()),
             self.competence,
             *self.competence.basic,
             self.competence.ability,
@@ -382,9 +415,42 @@ def _moral(obj: Mapping[str, object]) -> MoralRule:
                 _source(item, item_path),
             )
         )
-    return MoralRule(
-        _id(obj, path), _name(obj, path), low, high, _source(obj, path), trim, tuple(items)
+    deduction_obj = obj.get("deduction")
+    deduction = (
+        None
+        if deduction_obj is None
+        else _deduction(_obj(deduction_obj, f"{path}.deduction"), {i.field for i in items})
     )
+    return MoralRule(
+        _id(obj, path),
+        _name(obj, path),
+        low,
+        high,
+        _source(obj, path),
+        trim,
+        tuple(items),
+        deduction,
+    )
+
+
+def _deduction(obj: Mapping[str, object], fields: set[MoralField]) -> DeductionRule:
+    path = "moral.deduction"
+    limit = None if obj.get("max") is None else _dec(obj, "max", path)
+    if limit is not None and limit < 0:
+        raise RuleError(f"{path}.max: 不能为负数")
+    raw = _get(obj, "floor_fields", f"{path}.floor_fields")
+    if not isinstance(raw, list):
+        raise RuleError(f"{path}.floor_fields: 应为数组")
+    seen: set[str] = set()
+    floor: list[MoralField] = []
+    for i, value in enumerate(raw):
+        if value not in fields:
+            raise RuleError(f"{path}.floor_fields[{i}]: 不是思想品德子项 {value!r}")
+        if value in seen:
+            raise RuleError(f"{path}.floor_fields[{i}]: 重复 {value!r}")
+        seen.add(value)
+        floor.append(cast(MoralField, value))
+    return DeductionRule(_id(obj, path), _name(obj, path), limit, tuple(floor), _source(obj, path))
 
 
 def _basic(obj: Mapping[str, object], path: str, seen: set[str]) -> BasicRule:
@@ -399,6 +465,15 @@ def _basic(obj: Mapping[str, object], path: str, seen: set[str]) -> BasicRule:
         return ThresholdRule(
             rule_id, name, field, _dec(obj, "threshold", path), _dec(obj, "points", path), source
         )
+    if kind == "step_capped":
+        step = _dec(obj, "step", path)
+        if step <= 0:
+            raise RuleError(f"{path}.step: 必须大于 0")
+        min_value = Decimal(0) if obj.get("min_value") is None else _dec(obj, "min_value", path)
+        return StepCappedRule(
+            rule_id, name, field, step, _dec(obj, "points_per_step", path),
+            _dec(obj, "cap", path), min_value, source,
+        )  # fmt: skip
     raise RuleError(f"{path}.type: 未知的基础分规则类型 {kind!r}")
 
 

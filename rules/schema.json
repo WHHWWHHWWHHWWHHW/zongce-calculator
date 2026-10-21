@@ -53,7 +53,8 @@
           "type": "array",
           "minItems": 1,
           "items": { "$ref": "#/$defs/moralItem" }
-        }
+        },
+        "deduction": { "$ref": "#/$defs/deductionRule" }
       }
     },
     "competence": {
@@ -70,7 +71,11 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "oneOf": [{ "$ref": "#/$defs/linearCappedRule" }, { "$ref": "#/$defs/thresholdRule" }]
+            "oneOf": [
+              { "$ref": "#/$defs/linearCappedRule" },
+              { "$ref": "#/$defs/thresholdRule" },
+              { "$ref": "#/$defs/stepCappedRule" }
+            ]
           }
         },
         "ability": { "$ref": "#/$defs/abilityRule" }
@@ -198,6 +203,40 @@
         "name": { "type": "string" },
         "threshold": { "$ref": "#/$defs/decimal" },
         "points": { "$ref": "#/$defs/decimal" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "stepCappedRule": {
+      "description": "阶梯计分（R-004）：x 未达到 min_value（缺省 0）记 0；否则 min(floor(x ÷ step) × points_per_step, cap)，全部积分都计；负数记 0",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "field", "step", "points_per_step", "cap", "source"],
+      "properties": {
+        "type": { "const": "step_capped" },
+        "id": { "$ref": "#/$defs/ruleId" },
+        "field": { "enum": ["second_classroom", "public_service", "fitness_test", "dorm_check"] },
+        "name": { "type": "string" },
+        "step": { "$ref": "#/$defs/decimal" },
+        "points_per_step": { "$ref": "#/$defs/decimal" },
+        "cap": { "$ref": "#/$defs/decimal" },
+        "min_value": { "oneOf": [{ "$ref": "#/$defs/decimal" }, { "type": "null" }] },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "deductionRule": {
+      "description": "思想品德附减分（R-001）：从子项之和中扣除；max 为扣分合计上限（null 不设），floor_fields 中各子项的得分之和最多扣到 0",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "floor_fields", "source"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "name": { "type": "string" },
+        "max": { "oneOf": [{ "$ref": "#/$defs/decimal" }, { "type": "null" }] },
+        "floor_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["political", "morality", "discipline", "integrity"] }
+        },
         "source": { "$ref": "#/$defs/source" }
       }
     },

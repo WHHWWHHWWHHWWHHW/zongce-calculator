@@ -1,12 +1,20 @@
 """计分：逐位复现 legacy ``calc()``（CLAUDE.md §4）。"""
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import replace
-from decimal import Decimal, localcontext
+from decimal import ROUND_FLOOR, Decimal, localcontext
 
 from .models import ItemResult, MoralValue, PeerRatings, ScoreInput, ScoreResult
 from .numbers import ZERO, clamp, round_js, trimmed_mean, truncate
-from .rules import BasicRule, LinearCappedRule, MoralItemRule, RuleSet, TrimRule
+from .rules import (
+    BasicRule,
+    DeductionRule,
+    LinearCappedRule,
+    MoralItemRule,
+    RuleSet,
+    StepCappedRule,
+    TrimRule,
+)
 
 # 计算精度（有效数字位数）。只有去极值平均的除法可能是无限小数；
 # 50 位远超 4 位小数所需，不会把非边界值舍入成舍入边界。
@@ -60,8 +68,31 @@ def _basic_item(rule: BasicRule, value: Decimal | None) -> ItemResult:
     if isinstance(rule, LinearCappedRule):
         raw = _or_zero(value) * rule.rate
         return ItemResult(rule.id, min(raw, rule.cap), raw=raw, capped=raw > rule.cap)
+    if isinstance(rule, StepCappedRule):
+        if value is None or value < rule.min_value or value <= 0:
+            return ItemResult(rule.id, ZERO, raw=ZERO)  # 未达到分数线：全部不计
+        steps = (value / rule.step).to_integral_value(rounding=ROUND_FLOOR)
+        raw = steps * rule.points_per_step
+        return ItemResult(rule.id, min(raw, rule.cap), raw=raw, capped=raw > rule.cap)
     passed = value is not None and value >= rule.threshold
     return ItemResult(rule.id, rule.points if passed else ZERO, raw=value)
+
+
+def _deduction_item(
+    rule: DeductionRule,
+    requested: Decimal | None,
+    items: list[ItemResult],
+    fields: Mapping[str, str],
+) -> ItemResult:
+    """附减分：得分为负数（扣掉的分）；capped 表示受上限或“扣到 0 为止”限制而少扣。"""
+    asked = requested or ZERO
+    applied = asked
+    if rule.max is not None:
+        applied = min(applied, rule.max)
+    if rule.floor_fields:
+        floor = sum((i.score for i in items if fields[i.rule_id] in rule.floor_fields), ZERO)
+        applied = min(applied, max(floor, ZERO))
+    return ItemResult(rule.id, ZERO - applied, raw=requested, capped=applied < asked)
 
 
 def _rounder(places: int | None) -> Callable[[Decimal], Decimal]:
@@ -94,6 +125,14 @@ def _calculate(score_input: ScoreInput, rules: RuleSet) -> ScoreResult:
             fix(_moral_item(rule, score_input.moral_value(rule.field), rules.moral.trim))
             for rule in rules.moral.items
         ]
+        if rules.moral.deduction is not None:
+            fields = {rule.id: rule.field for rule in rules.moral.items}
+            deduction = fix(
+                _deduction_item(
+                    rules.moral.deduction, score_input.moral_deduction, moral_items, fields
+                )
+            )
+            moral_items.append(deduction)
         moral = fix(
             _limited(
                 rules.moral.id,
