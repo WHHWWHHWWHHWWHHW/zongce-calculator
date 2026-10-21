@@ -7,6 +7,7 @@ import os
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 
 from alembic import command
@@ -22,7 +23,8 @@ from .security import hash_password
 from .services.rules import create_rule_version
 
 ALEMBIC_INI = Path(__file__).resolve().parents[2] / "alembic.ini"
-REPO_RULES = Path(__file__).resolve().parents[3] / "rules"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_RULES = REPO_ROOT / "rules"
 
 
 @contextmanager
@@ -94,6 +96,41 @@ def seed_demo(settings: Settings, args: argparse.Namespace, password: str) -> No
     print("- 所有演示账号使用你输入的同一个密码，不要求首次改密；只用于演示，不要放真实数据")
 
 
+def _check_details_path(path: Path) -> None:
+    """明细含学号和分数（CLAUDE.md §11）：只能写到仓库的 data/ 目录（已被 git 忽略）或仓库以外。"""
+    resolved = path.resolve()
+    if resolved.is_relative_to(REPO_ROOT) and not resolved.is_relative_to(REPO_ROOT / "data"):
+        sys.exit("明细含学号和分数，只能写到仓库的 data/ 目录或仓库以外")
+
+
+def backtest(args: argparse.Namespace) -> None:
+    from zongce_engine import RuleError, RuleSet
+
+    from .backtest import details_csv, parse_table, render_report, run
+
+    today = datetime.now().astimezone()
+    report: Path = args.report or REPO_ROOT / "docs" / "reports" / f"backtest-{today:%Y%m%d}.md"
+    details: Path = args.details or REPO_ROOT / "data" / "backtest" / f"details-{today:%Y%m%d}.csv"
+    _check_details_path(details)
+    try:
+        rules = RuleSet.from_dict(json.loads(args.rules.read_text(encoding="utf-8")))
+        rows, skeleton = parse_table(args.table.name, args.table.read_bytes())
+    except (AppError, RuleError) as exc:
+        sys.exit(str(exc))
+    result = run(rows, rules, skeleton)
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.write_text(
+        render_report(result, label=args.label, rules=rules, date=f"{today:%Y-%m-%d}"),
+        encoding="utf-8",
+    )
+    details.parent.mkdir(parents=True, exist_ok=True)
+    details.write_text(details_csv(result), encoding="utf-8")
+    print(f"比对 {result.students} 名学生；规则 v1 差异 {len(result.differences)} 处，"
+          f"其中无法解释 {result.unexplained} 处")  # fmt: skip
+    print(f"- 统计报告（可入库）：{report}")
+    print(f"- 逐条明细（含学号，只留在本机，不要提交）：{details}")
+
+
 def _read_password(args: argparse.Namespace, prompt: str) -> str:
     if args.password_stdin:
         password = sys.stdin.readline().rstrip("\n")
@@ -131,10 +168,25 @@ def main(argv: list[str] | None = None) -> None:
     serve = sub.add_parser("serve", help="启动 API 服务")
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8000)
+    back = sub.add_parser("backtest", help="回溯测试：用历史数据重新核算，与官方结果逐项比对")
+    back.add_argument("table", type=Path, help="历史数据表（.xlsx / .csv），官方结果列以“官方”开头")
+    back.add_argument(
+        "--label", default="负责人提供的脱敏历史数据（1 个班）", help="报告中的数据说明"
+    )
+    back.add_argument("--rules", type=Path, default=REPO_RULES / "ujn-v1.json")
+    back.add_argument(
+        "--report", type=Path, help="统计报告路径（默认 docs/reports/backtest-日期.md）"
+    )
+    back.add_argument(
+        "--details", type=Path, help="逐条明细路径（默认 data/backtest/details-日期.csv）"
+    )
     export = sub.add_parser("export-openapi", help="导出 OpenAPI 文档")
     export.add_argument("output", type=Path)
     args = parser.parse_args(argv)
 
+    if args.command == "backtest":
+        backtest(args)
+        return
     if args.command == "export-openapi":
         from .main import create_app
 

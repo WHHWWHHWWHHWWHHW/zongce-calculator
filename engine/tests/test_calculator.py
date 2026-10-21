@@ -1,5 +1,6 @@
 """计分：分项明细、封顶标记、两种综合素质模式、输入校验。"""
 
+from dataclasses import replace
 from decimal import Decimal as D
 
 import pytest
@@ -178,3 +179,30 @@ def test_exact_half_rounds_up_unlike_legacy_float(rules: RuleSet) -> None:
     result = calculate(ScoreInput(quality_mode="direct", gpa=D("4.6278")), rules)
     assert result.final_score_raw == D("3.47085")
     assert str(result.final_score) == "3.4709"
+
+
+def test_intermediate_rounding_variant(rules: RuleSet) -> None:
+    # R-005 备选口径：各项中间值也舍入到 4 位。v1（legacy）只舍入最终结果
+    variant = replace(rules, final=replace(rules.final, intermediate_decimal_places=4))
+    score_input = ScoreInput(
+        gpa=D("4.0"),
+        political=PeerRatings((D("1"), D("2"), D("2"))),  # 去极值平均 5/3
+        second_classroom=D("2.0025"),  # × 0.5 = 1.00125
+    )
+    exact = calculate(score_input, rules)
+    assert exact.item("moral.political").score.quantize(D("1e-10")) == D("1.6666666667")
+    assert exact.quality_total.quantize(D("1e-10")) == D("2.6679166667")  # 5/3 + 1.00125
+    assert str(exact.final_score) == "3.0333"  # 3.033348958…
+
+    rounded = calculate(score_input, variant)
+    assert rounded.gpa == D("4.0000")
+    assert rounded.item("moral.political").score == D("1.6667")
+    assert rounded.item("basic.second_classroom").score == D("1.0013")
+    assert rounded.quality_total == D("2.6680")
+    assert rounded.final_score_raw == D("3.033350")
+    assert str(rounded.final_score) == "3.0334"
+
+    direct = calculate(
+        ScoreInput(quality_mode="direct", gpa=D("3.12345"), quality_direct=D("80.00005")), variant
+    )
+    assert (direct.gpa, direct.quality_total) == (D("3.1235"), D("80.0001"))

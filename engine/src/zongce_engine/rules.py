@@ -62,6 +62,9 @@ class FinalRule:
     quality_divisor: Decimal
     decimal_places: int
     source: str
+    # 各项中间值（分项得分与小计）舍入到的小数位数；None 表示不舍入、只舍入最终结果（legacy 口径）。
+    # 细则正文第六条“各项成绩精确到小数点后 4 位数”的另一种读法，见 docs/rules-issues.md R-005。
+    intermediate_decimal_places: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -322,6 +325,11 @@ def _final(obj: Mapping[str, object]) -> FinalRule:
         quality_divisor=divisor,
         decimal_places=_int(obj, "decimal_places", path, 0, 10),
         source=_source(obj, path),
+        intermediate_decimal_places=(
+            None
+            if obj.get("intermediate_decimal_places") is None
+            else _int(obj, "intermediate_decimal_places", path, 0, 10)
+        ),
     )
 
 

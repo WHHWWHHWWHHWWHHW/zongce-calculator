@@ -119,6 +119,12 @@
         "quality_weight": { "$ref": "#/$defs/decimal" },
         "quality_divisor": { "$ref": "#/$defs/decimal" },
         "decimal_places": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "intermediate_decimal_places": {
+          "description": "各项中间值（分项得分与小计）舍入到的小数位数；缺省或 null 表示只舍入最终结果（legacy 口径，见 docs/rules-issues.md R-005）",
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "maximum": 10
+        },
         "rounding": { "$ref": "#/$defs/jsMathRound" },
         "source": { "$ref": "#/$defs/source" }
       }
