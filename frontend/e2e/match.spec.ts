@@ -28,7 +28,7 @@ test('审核员上传获奖名单，确认可快速通过的申报', async ({ pa
   await uiLogin(page, 'TEST0001', REVIEWER_PASSWORD)
   await page.locator('.el-menu-item', { hasText: '名单比对' }).click()
   await expect(page).toHaveURL(/review\/match/)
-  await expect(page.getByText('目前只支持表格')).toBeVisible()
+  await expect(page.getByText('暂不支持图片和扫描件')).toBeVisible()
   await pick(page, 'match-item', '专业类或学术性竞赛')
   await page.getByTestId('match-context').fill('一类赛事')
   await page.locator('.el-upload__input').setInputFiles({

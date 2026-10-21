@@ -6,6 +6,13 @@
 
 ### 新增
 
+- 真实表单处理（ADR 0007）：
+  - 本机脱敏工具 `ai/eval/desensitize.py`；
+  - 活动获奖名单解析，按分值和等级对应申报目录；
+  - 按“班级 + 姓名”找学生；
+  - 真实表单统计脚本 `ai/eval/real_forms.py`，报告 `docs/reports/real-forms-20261020.md`。
+- 名单比对支持带文字的 PDF 和 TXT 活动获奖名单。
+- 前端参考智慧济大登录页的配色与版式改版（只借鉴风格）。
 - AI 辅助审核基础（M4）：`ai/pipeline`（`zongce_ai`）名单解析、等级规则匹配、与申报匹配和分流；`AI_PROVIDER` 默认 none；名单比对与快速通过批量确认接口和页面；`ai/eval` 评测脚本与合成评测集。
 - 回溯测试工具 `zongce backtest`（M3）；引擎可选规则字段 `final.intermediate_decimal_places`（缺省不舍入，v1 结果不变）。
 - `zongce seed-demo`：一条命令生成合成演示库。

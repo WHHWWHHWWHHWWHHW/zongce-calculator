@@ -1,5 +1,15 @@
 :root {
   --app-max-width: 1200px;
+  /* 主色取自学校门户常用的蓝（#1665C7），其余色阶按 Element Plus 的规则与白、黑混合 */
+  --el-color-primary: #1665c7;
+  --el-color-primary-light-3: #5c93d8;
+  --el-color-primary-light-5: #8bb2e3;
+  --el-color-primary-light-7: #b9d1ee;
+  --el-color-primary-light-8: #d0e0f4;
+  --el-color-primary-light-9: #e8f0f9;
+  --el-color-primary-dark-2: #12519f;
+  --el-bg-color-page: #f2f5f9;
+  --el-border-radius-base: 3px;
 }
 
 * {
@@ -12,8 +22,8 @@ body {
   background: var(--el-bg-color-page);
   color: var(--el-text-color-primary);
   font-family:
-    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
-    sans-serif;
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB',
+    Helvetica, Arial, sans-serif;
 }
 
 .page {
