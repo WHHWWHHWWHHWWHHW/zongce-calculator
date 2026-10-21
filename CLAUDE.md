@@ -27,7 +27,7 @@
 
 ---
 
-## 2. 仓库现状（截至 2026-10-21）
+## 2. 仓库现状（截至 2026-10-22）
 
 `main` 上只有下表中的 legacy 文件。平台代码在依次堆叠的分支上（尚未合并到 `main`），详见 `docs/PROGRESS.md`：
 
@@ -42,6 +42,8 @@
 | `m4/ui-style` | 在 real-forms 之上：名单比对支持 PDF / TXT 活动名单，前端配色改版 |
 | `m4/labeling` | 在 ui-style 之上：人工抽样核对脚本 `ai/eval/label_sample.py` |
 | `m3/backtest-real` | 在 labeling 之上：回溯工具适配学院导出模板、截断口径（R-011）、真实数据回溯报告 |
+| `m4/local-demo` | 在 backtest-real 之上：本机一键演示 `scripts/local-demo.sh`、本机功能验证报告（ADR 0008） |
+| `m5/rules-v2-engine` | 在 local-demo 之上：规则 v2 的引擎能力（阶梯计分加分数线、思想品德附减分）、到梦空间与志愿章汇总导入 |
 
 `main` 上的文件：
 
