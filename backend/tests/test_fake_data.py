@@ -1,6 +1,7 @@
 """合成演示数据：生成的文件能完整导入、核算、排名（也作为一次端到端集成测试）。"""
 
 import importlib.util
+import json
 from pathlib import Path
 from types import ModuleType
 
@@ -60,3 +61,19 @@ def test_main_writes_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
     gen.main()
     assert (tmp_path / "users.xlsx").exists()
     assert (tmp_path / "college.xlsx").exists()
+
+
+def test_ai_eval_dataset(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """评测集由脚本生成；仓库里的 ai/eval/datasets 文件必须与脚本输出一致（可复现）。"""
+    gen = _load()
+    out = tmp_path / "eval.json"
+    monkeypatch.setattr("sys.argv", ["gen_fake_data.py", "--ai-eval", str(out)])
+    gen.main()
+    committed = SCRIPT.parents[1] / "ai" / "eval" / "datasets" / "award-lists-synthetic.json"
+    assert out.read_text(encoding="utf-8") == committed.read_text(encoding="utf-8")
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["synthetic"] is True
+    for case in data["cases"]:
+        ids = {row[1].strip() for row in case["rows"][1:]}
+        assert all(i.startswith(("TEST", "ＴＥＳＴ")) for i in ids)
+        assert len(case["truth"]) == len(case["rows"]) - 1

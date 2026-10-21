@@ -12,9 +12,10 @@
 """
 
 import argparse
+import json
 from pathlib import Path
 
-from zongce_backend.fake_data import college_rows, users_rows, write_xlsx
+from zongce_backend.fake_data import award_eval_dataset, college_rows, users_rows, write_xlsx
 
 
 def main() -> None:
@@ -25,7 +26,19 @@ def main() -> None:
     parser.add_argument("--classes", type=int, default=2)
     parser.add_argument("--students", type=int, default=30)
     parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument(
+        "--ai-eval",
+        type=Path,
+        metavar="JSON",
+        help="改为生成 AI 辅助审核评测集（获奖名单 + 申报 + 标注）",
+    )
     args = parser.parse_args()
+    if args.ai_eval is not None:
+        args.ai_eval.parent.mkdir(parents=True, exist_ok=True)
+        text = json.dumps(award_eval_dataset(args.seed), ensure_ascii=False, indent=1)
+        args.ai_eval.write_text(text + "\n", encoding="utf-8")
+        print(f"已生成 {args.ai_eval}")
+        return
     write_xlsx(args.out / "users.xlsx", users_rows(args.classes, args.students))
     write_xlsx(args.out / "college.xlsx", college_rows(args.classes, args.students, args.seed))
     print(f"已生成 {args.out / 'users.xlsx'}、{args.out / 'college.xlsx'}")

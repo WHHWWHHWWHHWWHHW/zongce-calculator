@@ -2,6 +2,47 @@
 
 > 每次会话结束时在顶部追加一条（CLAUDE.md §9.3）。
 
+## 2026-10-20 · M1 加固、中期演示库、M3 回溯工具、M4 基础（无人值守，负责人授权）
+
+**完成**
+
+- `m2/frontend`：
+  - 按负责人同意修改 CLAUDE.md（P-001～P-007）。
+  - 登录失败限流：同一账号 15 分钟内失败 5 次，或同一 IP 失败 20 次，返回 429（ADR 0005）。
+  - `zongce seed-demo`：一条命令生成中期演示库，包括账号、学院成绩、通过 / 改分 / 驳回 / 待审 / 草稿五种申报、核算结果、公示和异议，只能写入空库。
+- `m3/backtest`（基于 m2）：
+  - 引擎新增可选规则字段 `final.intermediate_decimal_places`（R-005 的另一种读法），v1 结果不变。
+  - `zongce backtest`：用历史数据按两种口径重新核算，与官方结果逐项比对。差异分为三类：R-005、舍入边界（R-008）、无法解释。统计报告可以入库；逐条明细只能写到 `data/`。
+  - 用法见 `docs/回溯测试说明.md`。
+- `m4/ai-basics`（基于 m3）：
+  - `ai/pipeline`（`zongce_ai`）：名单解析；把“省一”“金奖”“第五名”等写法规则匹配到申报目录选项，拿不准就不给选项；与申报逐条匹配，按置信度分流；`AI_PROVIDER=none|local|remote`，默认 none；外发前脱敏工具。
+  - 接口：`/ai/status`、名单比对（只读）、快速通过批量确认（逐条走审核流程并留痕）。
+  - 前端“名单比对”页面。
+  - `ai/eval/evaluate.py` 和合成评测集。
+  - 详见 ADR 0006。
+
+**验证**（云端环境，Python 3.13.16 / Node 22.22.0 / Chromium 141）
+
+- `bash scripts/check.sh`：
+  - ruff、`mypy --strict` 通过。
+  - 引擎 + 对拍 133 passed，覆盖率 100%。
+  - AI 流水线 44 passed，覆盖率 100%。
+  - 后端 75 passed，覆盖率 98.93%。
+- `pnpm test` 34 passed；`pnpm test:e2e` 6 passed，另有 2 个截图用例未设 `SCREENSHOTS_DIR` 而跳过。
+- 合成评测集（163 行）：学号、等级准确率和快速通过的精确率、召回率均为 100%。**合成数据的写法与匹配规则同源，这个结果不能作为“≥ 95%”的依据**（`ai/eval/README.md`）。
+- 你电脑上：同步提交后重新运行全部检查（见本次汇报）。
+
+**下一步**
+
+- M3：负责人提供 1 个班的脱敏历史数据后，运行 `zongce backtest`，逐条核查“无法解释”的差异。
+- M4：需要负责人提供脱敏的真实表单样本（§13 第 2 项）、确定大模型与密钥（§13 第 4 项），之后接入 OCR 和大模型抽取，并用真实样本评测。
+
+**阻塞 / 待决定**
+
+- GitHub 推送权限仍未打通，需要在你电脑上推送：`git push -u origin m0/rule-engine m1/backend m2/frontend m3/backtest m4/ai-basics`。
+- CLAUDE.md 修改建议 P-008～P-009 待负责人同意。
+- R-001～R-005 纳入哪个规则版本。
+
 ## 2026-10-19 · M2 前端页面（Element Plus）
 
 **完成**（分支 `m2/frontend`）

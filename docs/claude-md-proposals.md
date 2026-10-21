@@ -46,3 +46,15 @@
 ## P-007 §2 仓库现状更新
 
 - **建议**：把“M0 的产出在分支 m0/rule-engine 上”改为列出 m0 → m1 → m2 三条堆叠分支及各自内容；合并到 main 后再改成目录说明。
+
+## P-008 §2 仓库现状：分支表增加 m3、m4
+
+- **建议**：§2 的分支表追加两行——`m3/backtest`（在 M2 之上：回溯测试工具 `zongce backtest`、引擎可选的中间值舍入口径、`docs/回溯测试说明.md`）；`m4/ai-basics`（在 M3 之上：`ai/pipeline` 流水线、名单比对接口与页面、`ai/eval` 评测）。
+- **理由**：负责人 2026-10-20 同意“M3 等数据时先做 M4 基础”，这两条分支已经存在。
+
+## P-009 §7 目录结构：ai/ 的实际布局
+
+- **原文**：`ai/pipeline/  # 解析 → OCR → 抽取 → 校验 → 匹配`
+- **建议改为**：`ai/pipeline/  # Python 包 zongce_ai（uv 工作区成员，src/ 布局）：解析 → OCR → 抽取 → 校验 → 匹配`；`ai/eval/` 一行补充“`datasets/` 放评测集，合成评测集由 `scripts/gen_fake_data.py --ai-eval` 生成”。
+- **理由**：与 `engine/`、`backend/` 一致，便于测试和类型检查（ADR 0006）。
+

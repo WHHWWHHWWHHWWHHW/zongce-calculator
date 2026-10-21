@@ -58,6 +58,12 @@ export const appRoutes: RouteRecordRaw[] = [
     meta: { title: '审核工作台', roles: REVIEWER, menu: true },
   },
   {
+    path: 'review/match',
+    name: 'match',
+    component: () => import('@/views/MatchView.vue'),
+    meta: { title: '名单比对', roles: REVIEWER, menu: true },
+  },
+  {
     path: 'admin',
     name: 'admin',
     component: () => import('@/views/AdminView.vue'),

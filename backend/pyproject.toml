@@ -16,6 +16,7 @@ dependencies = [
     "python-multipart>=0.0.32",
     "sqlalchemy>=2",
     "uvicorn>=0.54.0",
+    "zongce-ai",
     "zongce-engine",
 ]
 
@@ -29,6 +30,7 @@ mysql = [
 zongce = "zongce_backend.cli:main"
 
 [tool.uv.sources]
+zongce-ai = { workspace = true }
 zongce-engine = { workspace = true }
 
 [build-system]

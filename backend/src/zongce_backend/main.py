@@ -7,7 +7,7 @@ from .config import Settings
 from .db import make_engine, make_session_factory
 from .errors import install_error_handlers
 from .ratelimit import LoginLimiter
-from .routers import audit, auth, declarations, publications, scores, users, years
+from .routers import ai, audit, auth, declarations, publications, scores, users, years
 from .storage import LocalFileStorage
 
 API_PREFIX = "/api/v1"
@@ -45,7 +45,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     api = APIRouter(prefix=API_PREFIX)
-    for module in (auth, users, years, declarations, scores, publications, audit):
+    for module in (auth, users, years, declarations, scores, publications, audit, ai):
         api.include_router(module.router)
 
     @api.get("/health", tags=["系统"], summary="健康检查")
