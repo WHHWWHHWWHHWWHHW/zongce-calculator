@@ -103,6 +103,18 @@ def _check_details_path(path: Path) -> None:
         sys.exit("明细含学号和分数，只能写到仓库的 data/ 目录或仓库以外")
 
 
+def _official_overrides(items: list[str]) -> dict[str, str]:
+    from .backtest import RESULT_FIELDS
+
+    overrides: dict[str, str] = {}
+    for item in items:
+        label, _, result_field = item.partition("=")
+        if not label or result_field not in RESULT_FIELDS:
+            sys.exit(f"--official 写法应为 列名=字段，字段为 {'、'.join(RESULT_FIELDS)}：{item}")
+        overrides[label] = result_field
+    return overrides
+
+
 def backtest(args: argparse.Namespace) -> None:
     from zongce_engine import RuleError, RuleSet
 
@@ -114,7 +126,8 @@ def backtest(args: argparse.Namespace) -> None:
     _check_details_path(details)
     try:
         rules = RuleSet.from_dict(json.loads(args.rules.read_text(encoding="utf-8")))
-        rows, skeleton = parse_table(args.table.name, args.table.read_bytes())
+        overrides = _official_overrides(args.official or [])
+        rows, skeleton = parse_table(args.table.name, args.table.read_bytes(), overrides)
     except (AppError, RuleError) as exc:
         sys.exit(str(exc))
     result = run(rows, rules, skeleton)
@@ -174,6 +187,13 @@ def main(argv: list[str] | None = None) -> None:
         "--label", default="负责人提供的脱敏历史数据（1 个班）", help="报告中的数据说明"
     )
     back.add_argument("--rules", type=Path, default=REPO_RULES / "ujn-v1.json")
+    back.add_argument(
+        "--official",
+        action="append",
+        metavar="列名=字段",
+        help="官方结果列不以“官方”开头时指定，如 班级测评总分=final_score；"
+        "字段：final_score、quality_total、moral_total、competence_total",
+    )
     back.add_argument(
         "--report", type=Path, help="统计报告路径（默认 docs/reports/backtest-日期.md）"
     )

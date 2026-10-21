@@ -134,7 +134,7 @@ class _Columns:
     ignored: list[str]
 
 
-def _columns(header: list[str]) -> _Columns:
+def _columns(header: list[str], official_columns: Mapping[str, str] | None = None) -> _Columns:
     student = next((i for i, h in enumerate(header) if STUDENT_COLUMN in h), None)
     if student is None:
         raise AppError("表头缺少“学号”列")
@@ -145,7 +145,10 @@ def _columns(header: list[str]) -> _Columns:
     for col, label in enumerate(header):
         if col == student or not label:
             continue
-        result_field = _official_field(label)
+        overrides = official_columns or {}
+        result_field = next(
+            (f for key, f in overrides.items() if key in normalize_label(label)), None
+        ) or _official_field(label)
         if result_field is not None and result_field not in official.values():
             official[col] = result_field
             continue
@@ -207,13 +210,19 @@ def _official(text: str) -> Official | None:
     return Official(text, value, places, False)
 
 
-def parse_table(filename: str, data: bytes) -> tuple[list[BacktestRow], BacktestResult]:
-    """读取历史数据表。返回可比对的行，以及只填好表头和跳过信息的结果骨架。"""
+def parse_table(
+    filename: str, data: bytes, official_columns: Mapping[str, str] | None = None
+) -> tuple[list[BacktestRow], BacktestResult]:
+    """读取历史数据表。返回可比对的行，以及只填好表头和跳过信息的结果骨架。
+
+    official_columns：列名关键词 → 结果字段，用于官方结果列不以“官方”开头的表
+    （如学院导出模板的“班级测评总分”= final_score）。
+    """
     rows = read_table(filename, data)
     if not rows:
         raise AppError("表格为空")
     header = rows[0]
-    cols = _columns(header)
+    cols = _columns(header, official_columns)
     parsed: list[BacktestRow] = []
     skipped: Counter[str] = Counter()
     seen: set[str] = set()

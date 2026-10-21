@@ -161,3 +161,26 @@ def test_cli_backtest_default_paths(
     cli.main(["backtest", str(table)])
     assert len(list((tmp_path / "docs" / "reports").glob("backtest-*.md"))) == 1
     assert len(list((tmp_path / "data" / "backtest").glob("details-*.csv"))) == 1
+
+
+def test_official_column_override_and_direct_quality(tmp_path: Path) -> None:
+    """学院导出模板：综合素质为直接给出的总分，综测成绩列叫“班级测评总分”。"""
+    table = [
+        ["学年_(必填)", "学号_(必填)", "姓名_(必填)", "综合素质评价成绩_(必填)",
+         "学业水平评价成绩_(必填)", "班级测评总分_(必填)"],
+        ["12", "TEST1", "虚构", "78.875", "3.6524", "3.7252"],
+        ["12", "TEST2", "虚构", "72.5", "5", "4.65625"],  # 未舍入的官方值
+    ]  # fmt: skip
+    rows, skeleton = parse_table("t.xlsx", xlsx(table), {"班级测评总分": "final_score"})
+    assert rows[0].score_input.quality_mode == "direct"
+    result = run(rows, RULES, skeleton)
+    assert result.stats["final_score"].matched["v1"] == 2
+    assert result.rounded_officials == 1
+    path = tmp_path / "t.xlsx"
+    path.write_bytes(xlsx(table))
+    report, details = tmp_path / "r.md", tmp_path / "d.csv"
+    cli.main(["backtest", str(path), "--official", "班级测评总分=final_score",
+              "--report", str(report), "--details", str(details)])  # fmt: skip
+    assert "| 综测成绩 | 2 |" in report.read_text(encoding="utf-8")
+    with pytest.raises(SystemExit, match="列名=字段"):
+        cli.main(["backtest", str(path), "--official", "班级测评总分=总分"])
