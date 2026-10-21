@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     )
     login_window_minutes: int = Field(default=15, ge=1, le=24 * 60)
     cors_origins: list[str] = []
+    frontend_dist: Path | None = Field(
+        default=None,
+        description="前端构建产物目录（frontend/dist）。设置后由后端同时提供页面，"
+        "一个端口即可使用（本机演示，见 scripts/local-demo.sh）",
+    )
     ai_provider: AiProvider = Field(
         default=AiProvider.NONE,
         description="CLAUDE.md 中的 AI_PROVIDER：none（默认，只解析表格）| local | remote",

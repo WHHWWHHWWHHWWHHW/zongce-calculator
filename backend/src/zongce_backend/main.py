@@ -1,7 +1,12 @@
 """FastAPI 应用。本机启动：uv run zongce serve（见 docs/本机运行.md）。"""
 
+from pathlib import Path
+
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import Settings
 from .db import make_engine, make_session_factory
@@ -53,4 +58,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {"status": "ok", "version": VERSION}
 
     app.include_router(api)
+    if settings.frontend_dist is not None:
+        _serve_frontend(app, settings.frontend_dist)
     return app
+
+
+def _serve_frontend(app: FastAPI, dist: Path) -> None:
+    """提供前端构建产物：静态文件原样返回，其余路径返回 index.html（前端路由为 history 模式）。"""
+    root = dist.resolve()
+    index = root / "index.html"
+    if not index.is_file():
+        raise RuntimeError(f"{dist} 下没有 index.html，请先构建前端：cd frontend && pnpm build")
+    if (root / "assets").is_dir():
+        app.mount("/assets", StaticFiles(directory=root / "assets"), name="assets")
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def frontend(path: str) -> FileResponse:
+        if path == "api" or path.startswith("api/"):
+            raise StarletteHTTPException(status_code=404)
+        file = (root / path).resolve()
+        if path and file.is_file() and file.is_relative_to(root):
+            return FileResponse(file)
+        return FileResponse(index)
