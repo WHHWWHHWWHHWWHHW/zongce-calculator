@@ -97,7 +97,7 @@ def seed_demo(settings: Settings, args: argparse.Namespace, password: str) -> No
 
 
 def _check_details_path(path: Path) -> None:
-    """明细含学号和分数（CLAUDE.md §11）：只能写到仓库的 data/、real_data/（已被 git 忽略）或仓库以外。"""
+    """明细含学号和分数（CLAUDE.md §11）：只能写到 data/、real_data/（已被忽略）或仓库以外。"""
     resolved = path.resolve()
     allowed = (REPO_ROOT / "data", REPO_ROOT / "real_data")
     if resolved.is_relative_to(REPO_ROOT) and not any(resolved.is_relative_to(a) for a in allowed):
