@@ -5,7 +5,7 @@ description = "AI 辅助审核流水线：表单解析、校验、与申报匹�
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
-dependencies = ["pydantic>=2"]
+dependencies = ["pdfplumber>=0.11.10", "pydantic>=2"]
 
 [build-system]
 requires = ["uv_build>=0.12.13,<0.13"]

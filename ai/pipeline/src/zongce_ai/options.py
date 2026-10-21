@@ -25,6 +25,7 @@ _REWRITES: tuple[tuple[re.Pattern[str], str], ...] = (
     # “省一”“国二”等缩写：后面紧跟“奖”、非汉字或结尾时才改写，避免误伤“全国三好学生”
     (re.compile(r"(国|省|校|院)([一二三])(?=$|奖|[^\u4e00-\u9fff])"), r"\1级\2等奖"),
     (re.compile(r"(国|省|校|院)(?=[特一二三]等)"), r"\1级"),  # “省一等奖”
+    (re.compile(r"(国|省|校|院)(?=第)"), r"\1级"),  # “校第一名”
     (re.compile(r"金奖"), "一等奖"),
     (re.compile(r"银奖"), "二等奖"),
     (re.compile(r"铜奖"), "三等奖"),
@@ -190,3 +191,28 @@ def match_option(text: str, options: Sequence[tuple[str, str]]) -> OptionMatch:
     if any(_compatible(f, row) for f in facets.values()):
         return OptionMatch(None, AMBIGUOUS, "原文缺少区分信息（如赛事类别、级别或奖项）")
     return OptionMatch(None, Decimal(0), "无法对应到任何选项")
+
+
+def has_level(text: str) -> bool:
+    """原文是否写明了级别（国家级、省级、校级、院级……）。"""
+    return bool(_facets(text, option=False).levels)
+
+
+def compatible_options(text: str, options: Sequence[tuple[str, str]]) -> list[str]:
+    """与原文不矛盾的选项（原文没写的维度不算矛盾）。"""
+    row = _facets(text, option=False)
+    result = []
+    for code, name in options:
+        option = _facets(name, option=True)
+        pairs = zip(option.dims(), row.dims(), strict=True)
+        if all(not allowed or not found or found <= allowed for allowed, found in pairs):
+            result.append(code)
+    return result
+
+
+def names_present(text: str, option_name: str) -> bool:
+    """选项名称中除级别、奖项等维度以外的称号（如“辩论赛最佳辩手”）是否出现在原文中；没有称号时为真。"""
+    plain = _standard(text)
+    remainder = _FACET_WORDS.sub("", _standard(_PAREN.sub("", option_name)))
+    words = [w for w in re.split(r"[、,，/\s]+", remainder) if len(w) >= 2]
+    return all(w in plain for w in words)
