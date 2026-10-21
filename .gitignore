@@ -30,6 +30,7 @@ __pycache__/
 .coverage.*
 coverage.xml
 htmlcov/
+coverage/
 dist/
 build/
 *.egg-info/
@@ -43,3 +44,7 @@ Thumbs.db
 
 # pnpm 包缓存
 .pnpm-store/
+
+# Playwright
+playwright-report/
+test-results/

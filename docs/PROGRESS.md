@@ -2,6 +2,61 @@
 
 > 每次会话结束时在顶部追加一条（CLAUDE.md §9.3）。
 
+## 2026-10-19 · M2 前端页面（Element Plus）
+
+**完成**（分支 `m2/frontend`）
+
+- 负责人确认：组件库 Element Plus；ADR 0003 第 6–8 条照此执行。
+- 页面：学生申报（含证明材料）、我的成绩、成绩预估、公示与异议；审核工作台（标红：申报分≠建议分、需人工给分、未上传材料）；管理后台（学年与规则、账号导入、成绩表导入、核算与排名、导出、公示与异议）。
+- 后端配合：申报目录接口带类型；`create-admin --password-stdin`；异议带学生信息；计分明细提供 4 位小数展示值；命令行释放数据库连接。
+- Playwright：主流程（学生申报 → 审核员通过 → 管理员核算导出 → 学生看到 3.3127）+ 375px 检查；演示截图 9 张；测试报告草稿 `docs/reports/test-report-20261019.md`。
+- CI 增加端到端任务。
+
+**验证**
+
+- 云端环境（Python 3.13.16 / Node 22.22.0 / Chromium 141）：`bash scripts/check.sh` 引擎 129 passed（覆盖率 100%）、后端 52 passed（98.52%），`-W error::ResourceWarning` 下无警告；`pnpm test` 30 passed；`pnpm test:e2e` 7 passed。
+- 你电脑上：同步提交后重新运行全部检查（见本次汇报）。
+
+**下一步**
+
+- M2 验收项已全部完成；推送后确认 CI（含 e2e、MySQL）通过，开 PR 草稿。
+- M3 回溯测试需要负责人提供 1 个班的**脱敏**历史综测数据和官方公布结果。
+
+**阻塞 / 待决定**
+
+- GitHub 推送权限仍未打通。
+- CLAUDE.md 修改建议 P-001～P-007 待负责人同意。
+- R-001～R-005 纳入哪个规则版本。
+
+## 2026-10-13 · M2 前端基础（不依赖组件库）
+
+**完成**（分支 `m2/frontend`，基于 `m1/backend`）
+
+- `frontend/`：Vue 3.5 + Vite 7 + TypeScript 5.9（strict）+ vue-router 4.6 + Pinia 3。
+- API 类型由 `docs/api/openapi.json` 生成（openapi-typescript），请求用 openapi-fetch；`pnpm check:api` 校验一致。
+- 登录态（sessionStorage）、401 自动登出、修改密码后重新登录；路由守卫：未登录 / 强制改密 / 角色。
+- 占位页：登录、改密、首页、审核工作台、管理后台、无权限。
+- 安全自查后修复（`m1/backend`）：Excel 导出防公式注入、时间带 UTC 时区、下载加 nosniff。
+- CI 增加前端任务；ADR 0004；`frontend/README.md`。
+- `scripts/gen_fake_data.py`：生成合成演示数据（users.xlsx、college.xlsx，学号以 TEST 开头），集成测试覆盖“导入 → 核算 → 排名”。
+
+**验证**（本地，Node 22.23.2）
+
+- `pnpm check:api`、`format:check`、`lint`、`typecheck`、`build`：通过。
+- `pnpm test`：15 passed；语句 100%、分支 98.61%、函数 87.5%。
+- `bash scripts/check.sh`：引擎 + 对拍 129 passed（覆盖率 100%）；后端 52 passed（覆盖率 98.50%）。干净克隆复跑通过。
+- 本机联调：`vite preview` + `zongce serve`，经前端代理访问 `/api/v1/health` 和登录成功。
+- 浏览器端到端（Playwright）：**未做**，等页面实现后补。
+
+**下一步**
+
+- **负责人选定组件库**（Element Plus 或 Naive UI）后实现页面：学生申报、审核工作台（差异项标红）、管理后台；Playwright 端到端测试；375px 适配。
+
+**阻塞 / 待决定**
+
+- 组件库选择（CLAUDE.md §13 第 7 项）。
+- GitHub 推送权限。
+
 ## 2026-10-13 · M1 后端 MVP（无人值守，负责人授权）
 
 **完成**（分支 `m1/backend`，基于 `m0/rule-engine`）

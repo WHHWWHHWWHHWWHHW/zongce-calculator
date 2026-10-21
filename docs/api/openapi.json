@@ -12,6 +12,7 @@
           "认证"
         ],
         "summary": "登录（学号/账号 + 密码）",
+        "description": "同一账号或同一 IP 在时间窗内登录失败次数过多时返回 429（响应头 Retry-After 给出等待秒数）。",
         "operationId": "login_api_v1_auth_login_post",
         "requestBody": {
           "content": {
@@ -627,9 +628,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Year Catalog Api V1 Years  Year Id  Catalog Get"
+                  "$ref": "#/components/schemas/AbilityCatalog"
                 }
               }
             }
@@ -2252,6 +2251,66 @@
   },
   "components": {
     "schemas": {
+      "AbilityCatalog": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Title"
+          },
+          "source_document": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Source Document"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          },
+          "concurrent_coefficients": {
+            "items": {
+              "type": "string",
+              "maxLength": 40,
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Concurrent Coefficients"
+          },
+          "caps": {
+            "items": {
+              "$ref": "#/components/schemas/CapGroup"
+            },
+            "type": "array",
+            "title": "Caps",
+            "default": []
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogItem"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "source_document",
+          "concurrent_coefficients",
+          "items"
+        ],
+        "title": "AbilityCatalog"
+      },
       "AppealCreate": {
         "properties": {
           "content": {
@@ -2280,6 +2339,25 @@
           "student_id": {
             "type": "integer",
             "title": "Student Id"
+          },
+          "student_username": {
+            "type": "string",
+            "title": "Student Username"
+          },
+          "student_name": {
+            "type": "string",
+            "title": "Student Name"
+          },
+          "class_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Class Name"
           },
           "content": {
             "type": "string",
@@ -2333,6 +2411,9 @@
           "id",
           "publication_id",
           "student_id",
+          "student_username",
+          "student_name",
+          "class_name",
           "content",
           "status",
           "response",
@@ -2510,6 +2591,195 @@
           "file"
         ],
         "title": "Body_upload_evidence_api_v1_declarations__declaration_id__evidence_post"
+      },
+      "CapGroup": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "max": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+            "title": "Max"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "max",
+          "source"
+        ],
+        "title": "CapGroup"
+      },
+      "CatalogItem": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Code"
+          },
+          "group": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Group"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "scoring": {
+            "type": "string",
+            "enum": [
+              "fixed",
+              "per_unit",
+              "manual"
+            ],
+            "title": "Scoring"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogOption"
+            },
+            "type": "array",
+            "title": "Options",
+            "default": []
+          },
+          "unit_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Name"
+          },
+          "unit_score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Score"
+          },
+          "min_score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Score"
+          },
+          "max_score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Score"
+          },
+          "team": {
+            "type": "boolean",
+            "title": "Team",
+            "default": false
+          },
+          "concurrent": {
+            "type": "boolean",
+            "title": "Concurrent",
+            "default": false
+          },
+          "cap_group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap Group"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "group",
+          "name",
+          "scoring",
+          "source"
+        ],
+        "title": "CatalogItem"
+      },
+      "CatalogOption": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "score": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+            "title": "Score"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "score"
+        ],
+        "title": "CatalogOption"
       },
       "ChangePasswordRequest": {
         "properties": {
@@ -3262,6 +3532,21 @@
             ],
             "title": "Raw"
           },
+          "score_display": {
+            "type": "string",
+            "title": "Score Display"
+          },
+          "raw_display": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Display"
+          },
           "capped": {
             "type": "boolean",
             "title": "Capped"
@@ -3298,12 +3583,15 @@
           "rule_id",
           "score",
           "raw",
+          "score_display",
+          "raw_display",
           "capped",
           "floored",
           "peer_count",
           "peer_trimmed_per_side"
         ],
-        "title": "ItemOut"
+        "title": "ItemOut",
+        "description": "一条规则的计算结果。score / raw 为精确值；*_display 为展示用的 4 位小数（§4.1）。"
       },
       "LoginRequest": {
         "properties": {

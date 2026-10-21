@@ -142,6 +142,13 @@ def test_preview(client: TestClient, world: World) -> None:
     )  # fmt: skip
     political = next(i for i in result["items"] if i["rule_id"] == "moral.political")
     assert (political["peer_count"], political["peer_trimmed_per_side"]) == (10, 1)
+    assert (political["raw"], political["raw_display"]) == ("8.625", "8.6250")
+    final = next(i for i in result["items"] if i["rule_id"] == "final")
+    assert (final["raw"], final["raw_display"], final["score_display"]) == (
+        "3.7252375", "3.7252", "3.7252",
+    )  # fmt: skip
+    empty = next(i for i in result["items"] if i["rule_id"] == "basic.fitness_test")
+    assert (empty["raw"], empty["raw_display"]) == ("85", "85.0000")
 
     direct = {"quality_mode": "direct", "quality_direct": "80", "gpa": "4",
               "rule_version_id": world.rule_version_id}  # fmt: skip
@@ -181,6 +188,8 @@ def test_compute_end_to_end_g1(client: TestClient, world: World, db: Session) ->
     )  # fmt: skip
     assert mine["ability_total"] == "38.0000"
     assert mine["detail"]["rules"] == {"id": "ujn-v1", "version": "1.0.0"}
+    political = next(i for i in mine["detail"]["items"] if i["rule_id"] == "moral.political")
+    assert (political["raw"], political["raw_display"]) == ("8.625", "8.6250")
     assert len(mine["detail"]["ability"]["declarations"]) == 4
 
     assert compute(client, world, reason="复核") == {"computed": 4, "changed": 0}

@@ -11,6 +11,7 @@ from zongce_engine import (
     PeerRatings,
     ScoreInput,
     calculate,
+    format_score,
     parse_rating_text,
 )
 from zongce_engine import ScoreResult as EngineResult
@@ -162,6 +163,8 @@ def _items(result: EngineResult) -> list[dict[str, Any]]:
             "rule_id": i.rule_id,
             "score": format(i.score, "f"),
             "raw": None if i.raw is None else format(i.raw, "f"),
+            "score_display": format_score(i.score),
+            "raw_display": None if i.raw is None else format_score(i.raw),
             "capped": i.capped,
             "floored": i.floored,
             "peer_count": i.peer_count,

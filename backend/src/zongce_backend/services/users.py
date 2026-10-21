@@ -9,6 +9,7 @@ from .. import audit
 from ..config import Settings
 from ..errors import AppError, ConflictError, NotFoundError, UnauthorizedError
 from ..models import Role, User, UserRole
+from ..ratelimit import LoginLimiter
 from ..schemas.users import CreatedAccount, PasswordReset, RowError, UserImportResult, UserUpdate
 from ..security import create_access_token, generate_password, hash_password, verify_password
 from ..tabular import read_table
@@ -32,11 +33,21 @@ _HEADERS = {
 }
 
 
-def login(db: Session, username: str, password: str, settings: Settings) -> tuple[User, str]:
+def login(
+    db: Session,
+    username: str,
+    password: str,
+    settings: Settings,
+    limiter: LoginLimiter,
+    client_ip: str,
+) -> tuple[User, str]:
+    limiter.check(username, client_ip)
     user = db.scalar(select(User).where(User.username == username))
     ok = verify_password(None if user is None else user.password_hash, password)
     if user is None or not ok or not user.is_active:
+        limiter.failed(username, client_ip)
         raise UnauthorizedError("账号或密码错误")
+    limiter.succeeded(username)
     return user, create_access_token(user.id, user.token_version, settings)
 
 

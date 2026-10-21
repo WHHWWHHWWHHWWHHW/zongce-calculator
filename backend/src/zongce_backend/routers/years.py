@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter
 from sqlalchemy import select
 
+from ..catalog import AbilityCatalog
 from ..deps import AdminUser, CurrentUser, DbSession
 from ..models import RuleVersion
 from ..schemas.years import (
@@ -65,7 +66,9 @@ def set_status(year_id: int, body: YearStatusUpdate, admin: AdminUser, db: DbSes
     return YearOut.model_validate(service.set_status(db, admin, year_id, body.status))
 
 
-@router.get("/years/{year_id}/catalog", summary="该学年的能力分申报目录")
-def year_catalog(year_id: int, _: CurrentUser, db: DbSession) -> dict[str, Any]:
+@router.get(
+    "/years/{year_id}/catalog", response_model=AbilityCatalog, summary="该学年的能力分申报目录"
+)
+def year_catalog(year_id: int, _: CurrentUser, db: DbSession) -> AbilityCatalog:
     year = service.get_year(db, year_id)
-    return rule_service.catalog_of(year.rule_version).model_dump(mode="json")
+    return rule_service.catalog_of(year.rule_version)

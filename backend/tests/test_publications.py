@@ -35,7 +35,8 @@ def test_publication_and_appeals(client: TestClient, world: World, db: Session) 
     assert appeal.status_code == 201
     assert client.post(appeal_url, json={"content": "x"}, headers=world.s3).status_code == 404
     assert client.post(appeal_url, json={"content": "x"}, headers=world.admin).status_code == 403
-    assert len(client.get(f"{API}/appeals", headers=world.s2).json()) == 1
+    mine = client.get(f"{API}/appeals", headers=world.s2).json()
+    assert [(a["student_username"], a["class_name"]) for a in mine] == [("TEST0003", "测试A班")]
     assert client.get(f"{API}/appeals", headers=world.s1).json() == []
     assert len(client.get(f"{API}/appeals", params={"publication_id": pub["id"]},
                           headers=world.admin).json()) == 1  # fmt: skip

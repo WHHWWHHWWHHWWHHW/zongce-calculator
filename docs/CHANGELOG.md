@@ -6,6 +6,8 @@
 
 ### 新增
 
+- 前端（M2，Element Plus）：学生申报、我的成绩、成绩预估、公示与异议、审核工作台（差异标红）、管理后台；Playwright 端到端测试与 375px 检查；演示截图与测试报告草稿。
+- 计分明细提供 4 位小数展示值（score_display / raw_display）。
 - 后端 `zongce_backend`（M1）：账号导入与强制改密、JWT + 三种角色、能力分申报与审核、证明材料上传、学院成绩表导入、核算与即时预估、班级排名与 Excel 导出、公示与异议、审计日志；Alembic 迁移；命令行 `zongce`。
 - 能力分申报目录 `rules/ability-catalog-xxgc-2020.json`（细则附件 2）。
 - `docs/本机运行.md`、`deploy/.env.example`、`docs/api/openapi.json`、`scripts/check.sh`；CI 增加 MySQL 8 迁移任务。
@@ -14,6 +16,10 @@
 - legacy 对拍：jsdom 加载 `zongce-calculator.html`，黄金用例 G1–G3 + 随机 2000 组。
 - GitHub Actions：ruff、mypy --strict、pytest（分支覆盖率 100%）、对拍。
 - 文档：`CLAUDE.md`、`docs/rules-issues.md`、ADR 0001/0002、`docs/PROGRESS.md`。
+
+### 安全
+
+- 排名导出防 Excel 公式注入；下载证明材料加 `X-Content-Type-Options: nosniff`；接口时间统一带 UTC 时区。
 
 ### 与 legacy 的已知差异
 
