@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/WHHWWHHWWHHWWHHW/zongce-calculator/blob/main/rules/schema.json",
+  "title": "综测计分规则文件",
+  "description": "规则文件的结构定义。所有数值以十进制字符串表示（避免 JSON 浮点），每条规则必须有 id 与 source（出处）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "version", "title", "baseline", "final", "academic", "quality", "moral", "competence"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "baseline": {
+      "description": "本规则版本对拍所依据的 legacy 基准",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "release", "commit"],
+      "properties": {
+        "file": { "type": "string", "minLength": 1 },
+        "release": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" }
+      }
+    },
+    "final": { "$ref": "#/$defs/finalRule" },
+    "academic": { "$ref": "#/$defs/academicRule" },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "min", "max", "source", "direct"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "name": { "type": "string" },
+        "min": { "$ref": "#/$defs/decimal" },
+        "max": { "$ref": "#/$defs/decimal" },
+        "source": { "$ref": "#/$defs/source" },
+        "direct": { "$ref": "#/$defs/rangeRule" }
+      }
+    },
+    "moral": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "min", "max", "source", "trim", "items"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "name": { "type": "string" },
+        "min": { "$ref": "#/$defs/decimal" },
+        "max": { "$ref": "#/$defs/decimal" },
+        "source": { "$ref": "#/$defs/source" },
+        "trim": { "$ref": "#/$defs/trimRule" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/moralItem" }
+        }
+      }
+    },
+    "competence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "min", "max", "source", "basic", "ability"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "name": { "type": "string" },
+        "min": { "$ref": "#/$defs/decimal" },
+        "max": { "$ref": "#/$defs/decimal" },
+        "source": { "$ref": "#/$defs/source" },
+        "basic": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [{ "$ref": "#/$defs/linearCappedRule" }, { "$ref": "#/$defs/thresholdRule" }]
+          }
+        },
+        "ability": { "$ref": "#/$defs/abilityRule" }
+      }
+    }
+  },
+  "$defs": {
+    "decimal": {
+      "description": "十进制数字符串，例如 \"0.75\"、\"-1\"、\"100\"",
+      "type": "string",
+      "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "ruleId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+    },
+    "source": {
+      "description": "出处：legacy 代码位置和/或办法原文条款",
+      "type": "string",
+      "minLength": 1
+    },
+    "jsMathRound": {
+      "description": "等价于 JavaScript Math.round：floor(x + 0.5)，.5 一律向正无穷进位；对非负数即通常的四舍五入",
+      "const": "js_math_round"
+    },
+    "rangeRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "min", "max", "source"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "name": { "type": "string" },
+        "min": { "$ref": "#/$defs/decimal" },
+        "max": { "$ref": "#/$defs/decimal" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "finalRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "academic_weight", "quality_weight", "quality_divisor", "decimal_places", "rounding", "source"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "name": { "type": "string" },
+        "academic_weight": { "$ref": "#/$defs/decimal" },
+        "quality_weight": { "$ref": "#/$defs/decimal" },
+        "quality_divisor": { "$ref": "#/$defs/decimal" },
+        "decimal_places": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "rounding": { "$ref": "#/$defs/jsMathRound" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "academicRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "name": { "type": "string" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "trimRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "ratio", "rounding", "source"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "name": { "type": "string" },
+        "ratio": { "$ref": "#/$defs/decimal" },
+        "rounding": { "$ref": "#/$defs/jsMathRound" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "moralItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "field", "min", "max", "source"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "field": { "enum": ["political", "morality", "discipline", "integrity"] },
+        "name": { "type": "string" },
+        "min": { "$ref": "#/$defs/decimal" },
+        "max": { "$ref": "#/$defs/decimal" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "linearCappedRule": {
+      "description": "得分 = min(rate × x, cap)。与 legacy 一致：没有下限",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "field", "rate", "cap", "source"],
+      "properties": {
+        "type": { "const": "linear_capped" },
+        "id": { "$ref": "#/$defs/ruleId" },
+        "field": { "enum": ["second_classroom", "public_service", "fitness_test", "dorm_check"] },
+        "name": { "type": "string" },
+        "rate": { "$ref": "#/$defs/decimal" },
+        "cap": { "$ref": "#/$defs/decimal" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "thresholdRule": {
+      "description": "得分 = x ≥ threshold ? points : 0；空值记 0",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "field", "threshold", "points", "source"],
+      "properties": {
+        "type": { "const": "threshold" },
+        "id": { "$ref": "#/$defs/ruleId" },
+        "field": { "enum": ["second_classroom", "public_service", "fitness_test", "dorm_check"] },
+        "name": { "type": "string" },
+        "threshold": { "$ref": "#/$defs/decimal" },
+        "points": { "$ref": "#/$defs/decimal" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "abilityRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "field", "min", "max", "source"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ruleId" },
+        "field": { "const": "ability" },
+        "name": { "type": "string" },
+        "min": { "$ref": "#/$defs/decimal" },
+        "max": { "$ref": "#/$defs/decimal" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    }
+  }
+}

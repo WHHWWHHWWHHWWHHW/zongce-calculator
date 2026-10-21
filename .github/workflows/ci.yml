@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    name: 规则引擎（Python ${{ matrix.python }}）
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+    env:
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.13"
+          enable-cache: true
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 安装对拍依赖（pnpm，版本取自 packageManager）
+        working-directory: tests/parity
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: 安装 Python 依赖
+        run: uv sync --frozen --python ${{ matrix.python }}
+
+      - name: ruff format
+        run: uv run --frozen ruff format --check .
+
+      - name: ruff check
+        run: uv run --frozen ruff check .
+
+      - name: mypy --strict
+        run: uv run --frozen mypy --strict
+
+      - name: 校验规则文件 schema
+        run: uv run --frozen pytest engine/tests/test_rules.py -q
+
+      - name: 测试 + 分支覆盖率 100% + legacy 对拍（2000 组）
+        run: uv run --frozen pytest --cov --cov-report=term-missing

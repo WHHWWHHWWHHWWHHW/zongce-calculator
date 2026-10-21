@@ -1,0 +1,16 @@
+{
+  "name": "zongce-parity",
+  "private": true,
+  "description": "Legacy 对拍工具：用 jsdom 加载 zongce-calculator.html 并调用其 calc()",
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "legacy": "node run_legacy.mjs"
+  },
+  "dependencies": {
+    "jsdom": "26.1.0"
+  }
+}

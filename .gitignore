@@ -1,0 +1,45 @@
+# 密钥与本地配置（CLAUDE.md §3、§11）
+.env
+.env.*
+!.env.example
+
+# 真实数据与上传文件——一律不进仓库（CLAUDE.md §11）
+data/
+uploads/
+real_data/
+*.sqlite
+*.sqlite3
+*.db
+
+# 模型权重
+*.pt
+*.pth
+*.onnx
+*.pdparams
+*.pdiparams
+*.safetensors
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Node
+node_modules/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# pnpm 包缓存
+.pnpm-store/
