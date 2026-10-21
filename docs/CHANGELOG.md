@@ -6,6 +6,13 @@
 
 ### 新增
 
+- 回溯测试用于真实数据（M3）：
+  - `--official 列名=字段` 指定官方结果列；
+  - 新增“最终结果截断到 4 位”口径；
+  - 综合素质写“放弃”的按 0 分核算；
+  - 报告 `docs/reports/backtest-20261021.md`。
+- 引擎可选规则字段 `final.rounding: "truncate"`（R-011），v1 不变。
+- 人工抽样核对脚本 `ai/eval/label_sample.py`（抽样表只在本机）。
 - 真实表单处理（ADR 0007）：
   - 本机脱敏工具 `ai/eval/desensitize.py`；
   - 活动获奖名单解析，按分值和等级对应申报目录；
