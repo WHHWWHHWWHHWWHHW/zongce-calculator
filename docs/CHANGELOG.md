@@ -6,6 +6,7 @@
 
 ### 新增
 
+- 平台分支专用根目录 README 与 `AGENTS.md` 编码助手规则：记录代码职责、计分不变量、权限与隐私边界、验证命令及 v2 未决项；本机验证见 `docs/reports/platform-verify-20261030.md`。
 - 学院成绩导入支持到梦空间学分汇总（“积分总和”→第二课堂）和志愿章汇总（“总章数”→公益劳动）：Excel 的每个工作表分别识别表头；没有学号列时按“班级 + 姓名”找学生。
 - 规则 v2 的引擎能力（规则文件待定）：基础分阶梯计分加分数线 `step_capped`（R-004）、思想品德附减分 `moral.deduction`（R-001）、输入 `moral_deduction`。
 - 本机一键演示 `scripts/local-demo.sh`：后端可选提供前端构建产物（`ZONGCE_FRONTEND_DIST`），一个端口即可使用；本机验证报告 `docs/reports/local-verify-20261022.md`。
